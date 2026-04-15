@@ -1,9 +1,7 @@
-const CACHE = 'appsado-v5';
+const CACHE = 'appsado-v6';
 const ASSETS = [
   '/',
-  '/appsado_v5.html',
-  'https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500&display=swap',
-  'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js'
+  '/index.html'
 ];
 
 self.addEventListener('install', e => {
