@@ -599,6 +599,7 @@ input:focus,select:focus{border-color:var(--ember);background:#fff;}
       <div class="avh-name" id="av-name"></div>
       <div class="avh-place" id="av-place"></div>
       <div class="avh-code" id="av-code-chip" onclick="copyCodeChip()"><b id="av-code"></b><small>tocar para copiar</small></div>
+      <button onclick="editAsadoInfo()" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.16);border-radius:8px;padding:4px 10px;font-size:12px;color:var(--smoke2);cursor:pointer;font-family:var(--fb);margin-top:6px;">✏️ Editar nombre/lugar</button>
     </div>
     <div class="av-stats">
       <div class="avs"><div class="avs-v" id="av-total"></div><div class="avs-l">total</div></div>
@@ -740,7 +741,10 @@ input:focus,select:focus{border-color:var(--ember);background:#fff;}
       <button class="btn" onclick="go('home')" style="padding:6px 12px;font-size:13px;">← Volver</button>
     </div>
     <h2 class="wt">Cronómetro Parrillero</h2>
-    <p class="wsub" style="margin-bottom:16px;">Elegí los cortes y te armo el cronograma para que todo salga junto</p>
+    <p class="wsub" style="margin-bottom:8px;">Elegí los cortes y te armo el cronograma para que todo salga junto</p>
+    <div style="background:var(--ember-xpale);border:1px solid var(--ember-pale);border-radius:var(--rs);padding:8px 12px;margin-bottom:14px;font-size:12px;color:var(--brown2);">
+      ⚠️ Mantené la pantalla activa mientras corre el cronómetro — si cerrás la app el timer se pausa.
+    </div>
 
     <div id="timerActiveView" style="display:none;">
       <div class="timer-clock">
@@ -771,6 +775,7 @@ input:focus,select:focus{border-color:var(--ember);background:#fff;}
         <button class="btn p" id="btnStartTimer" onclick="startTimer()" disabled>Iniciar cronograma →</button>
       </div>
       <p id="timerHint" style="font-size:12px;color:var(--smoke);text-align:right;margin-top:8px;">Seleccioná al menos un corte para iniciar</p>
+      <p style="font-size:11px;color:var(--smoke);text-align:center;margin-top:12px;padding:8px 12px;background:var(--cream2);border-radius:var(--rs);line-height:1.5;">⚠️ Mantené la pantalla activa mientras usás el cronómetro — si bloqueás el celu puede pausarse</p>
     </div>
   </div>
 </div>
@@ -855,6 +860,8 @@ async function saveAsado(a){
   });
 }
 async function updateAsado(a){
+  // Fix 4: add updatedAt timestamp to detect conflicts
+  a.updatedAt=Date.now();
   await sbReq('asados?code=eq.'+encodeURIComponent(a.code),{
     method:'PATCH',
     headers:{'Prefer':'return=minimal',...getAuthHeader()},
@@ -1030,6 +1037,7 @@ function go(name){
   if(name==='home')renderHist();
   if(name==='auth')document.getElementById('authSent').style.display='none';
   if(name==='profile')loadProfileScreen();
+  if(name==='asadometro')setTimeout(restoreAsadometro,100);
   window.scrollTo(0,0);
 }
 
@@ -1044,10 +1052,21 @@ async function renderHist(){
       el.innerHTML=`<div class="hist-cloud">☁️ Historial de ${currentUser.name} — sincronizado</div>`+
         asados.map(a=>{
           const d=a.date?new Date(a.date+'T12:00:00').toLocaleDateString('es-UY',{day:'numeric',month:'short'}):'';
-          return`<div class="ac" onclick="viewAsado('${a.code}')">
-            <div class="ac-icon">🔥</div>
-            <div class="ac-info"><div class="ac-name">${a.name||'Asado'}</div><div class="ac-meta">${d}${d?' · ':''}${a.code} · ${a.friends?.length||0} personas</div></div>
-            <div class="ac-amt">$${fmt(a.total||0)}</div>
+          const pend=(a.transfers||[]).filter(t=>!t.paid).reduce((s,t)=>s+t.amt,0);
+          const hasNotif=(a.transfers||[]).some(t=>t.notified&&!t.paid);
+          return`<div style="position:relative;">
+            <div class="ac" onclick="viewAsado('${a.code}')">
+              <div class="ac-icon">🔥</div>
+              <div class="ac-info">
+                <div class="ac-name">${a.name||'Asado'}${hasNotif?' <span style="font-size:11px;background:#D6E8D3;color:#27500A;padding:2px 6px;border-radius:10px;margin-left:4px;">🔔 nuevo aviso</span>':''}</div>
+                <div class="ac-meta">${d}${d?' · ':''}${a.code} · ${a.friends?.length||0} personas</div>
+              </div>
+              <div style="text-align:right;flex-shrink:0;padding-right:28px;">
+                <div class="ac-amt">$${fmt(a.total||0)}</div>
+                ${pend>0?`<div style="font-size:11px;color:var(--ember);margin-top:2px;">$${fmt(pend)} pend.</div>`:'<div style="font-size:11px;color:var(--green);margin-top:2px;">✓ saldado</div>'}
+              </div>
+            </div>
+            <button onclick="deleteAsadoFromHist('${a.code}',event)" style="position:absolute;top:50%;right:12px;transform:translateY(-50%);background:none;border:none;font-size:16px;cursor:pointer;color:var(--smoke);padding:4px;">🗑️</button>
           </div>`;
         }).join('');
     }catch(e){renderHistLocal(el);}
@@ -1061,10 +1080,13 @@ function renderHistLocal(el){
   el.innerHTML=`<div class="hist-cloud" style="color:var(--smoke);">📱 Historial local · <span style="color:var(--ember);cursor:pointer;" onclick="go('auth')">Ingresá para sincronizar →</span></div>`+
     h.map(x=>{
       const d=x.date?new Date(x.date+'T12:00:00').toLocaleDateString('es-UY',{day:'numeric',month:'short'}):'';
-      return`<div class="ac" onclick="viewAsado('${x.code}')">
-        <div class="ac-icon">🔥</div>
-        <div class="ac-info"><div class="ac-name">${x.name||'Asado'}</div><div class="ac-meta">${d}${d?' · ':''}${x.code}</div></div>
-        <div class="ac-amt">$${fmt(x.total||0)}</div>
+      return`<div style="position:relative;">
+        <div class="ac" onclick="viewAsado('${x.code}')">
+          <div class="ac-icon">🔥</div>
+          <div class="ac-info"><div class="ac-name">${x.name||'Asado'}</div><div class="ac-meta">${d}${d?' · ':''}${x.code}</div></div>
+          <div class="ac-amt">$${fmt(x.total||0)}</div>
+        </div>
+        <button onclick="deleteAsadoFromHist('${x.code}',event)" style="position:absolute;top:50%;right:12px;transform:translateY(-50%);background:none;border:none;font-size:16px;cursor:pointer;color:var(--smoke);padding:4px;">🗑️</button>
       </div>`;
     }).join('');
 }
@@ -1172,7 +1194,13 @@ function minTransfers(fr,bal){
   while(ci<cred.length&&di<debt.length){const c=cred[ci],d=debt[di];const amt=Math.min(c.b,d.b);if(amt>eps)txs.push({from:d.i,to:c.i,amt,paid:false});c.b-=amt;d.b-=amt;if(c.b<eps)ci++;if(d.b<eps)di++;}
   return txs;
 }
-function genCode(){const ch='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let c='';for(let i=0;i<6;i++)c+=ch[Math.floor(Math.random()*ch.length)];return c;}
+function genCode(){
+  // 6 chars: 3 consonants + 3 digits, easy to say and type
+  const cons='BCDFGHJKLMNPRSTVWXYZ';
+  const nums='23456789';
+  const c=k=>k[Math.floor(Math.random()*k.length)];
+  return c(cons)+c(cons)+c(cons)+c(nums)+c(nums)+c(nums);
+}
 
 // ── ASADO VIEW ──
 const AVB=['#F5D5C5','#D6E8D3','#FAE5C0','#E8D5F5','#D5EBF5','#F5D5D5','#D5F5E8','#F5EBD5'];
@@ -1405,6 +1433,8 @@ function renderTransTab(a){
 
 async function notifyPaid(ti){
   if(!CA)return;
+  // Fix 4: prevent double-notification
+  if(CA.transfers[ti].notified){toast('Ya avisaste que pagaste este monto.');return;}
   CA.transfers[ti].notified=true;
   try{
     showL('Enviando aviso...');
@@ -1516,6 +1546,7 @@ function renderAddExpTab(a){
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;"><span style="font-size:12px;color:var(--smoke);white-space:nowrap;">Lo pagué yo:</span><select id="newExpPayer">${a.friends.map((f,i)=>`<option value="${i}">${f}</option>`).join('')}</select></div>
     <p style="font-size:12px;color:var(--smoke);margin-bottom:6px;">¿Quién consume este gasto?</p>
     <div class="pg" id="newExpParts">${a.friends.map((f,fi)=>`<span class="pill on" data-fi="${fi}" onclick="this.classList.toggle('on')">${f}</span>`).join('')}</div>
+    <button id="btnCancelEdit" onclick="cancelEditExp()" style="display:none;width:100%;padding:10px;margin-top:8px;border:1.5px solid var(--bd2);border-radius:var(--rs);background:none;font-size:13px;cursor:pointer;font-family:var(--fb);color:var(--smoke);">Cancelar edición</button>
   </div>
   <input type="hidden" id="editingExpIdx" value="-1">
   <button class="btn p" onclick="addCollabExp()" style="width:100%;padding:13px;" id="btnAddExp">Agregar gasto al asado</button>`;
@@ -1533,12 +1564,15 @@ function editCollabExp(idx){
   document.getElementById('editingExpIdx').value=idx;
   document.getElementById('addExpFormTitle').textContent='Editando gasto';
   document.getElementById('btnAddExp').textContent='Guardar cambios';
+  const cancelBtn=document.getElementById('btnCancelEdit');
+  if(cancelBtn)cancelBtn.style.display='block';
   document.getElementById('addExpForm').scrollIntoView({behavior:'smooth'});
 }
 
 async function deleteCollabExp(idx){
   if(!CA)return;
-  if(!confirm('¿Borrar este gasto?'))return;
+  // Custom confirm toast instead of browser confirm
+  if(!await confirmAction(`¿Borrar "${CA.exps[idx]?.desc||'este gasto'}"?`))return;
   const removedExp=CA.exps[idx];
   CA.exps.splice(idx,1);
   const n=CA.friends.length,bal=new Array(n).fill(0);
@@ -1581,98 +1615,192 @@ async function addCollabExp(){
 
 function generatePDF(){
   if(!CA){toast('No hay asado activo.');return;}
+  if(!window.jspdf){toast('Cargando PDF, intentá en un segundo...');return;}
   const {jsPDF}=window.jspdf;
   const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
   const a=CA;
+  const W=210,ML=16,MR=194;
   const dateStr=a.date?new Date(a.date+'T12:00:00').toLocaleDateString('es-UY',{day:'numeric',month:'long',year:'numeric'}):'';
+  const pendingAmt=(a.transfers||[]).filter(t=>!t.paid).reduce((s,t)=>s+t.amt,0);
+  const bankAcc=CA._organizerBank||a.bankAcc||'';
+  const mpLink=CA._organizerMP||'';
 
-  // Header
+  // ── HEADER BAND ──
   doc.setFillColor(61,43,31);
-  doc.rect(0,0,210,40,'F');
-  doc.setTextColor(245,240,232);
-  doc.setFontSize(24);doc.setFont('helvetica','bold');
-  doc.text('APPSADO',14,20);
-  doc.setFontSize(11);doc.setFont('helvetica','normal');
-  doc.text('Resumen del asado',14,28);
-  doc.setFontSize(9);doc.setTextColor(194,181,172);
-  doc.text('appsado.netlify.app',14,35);
+  doc.rect(0,0,W,52,'F');
+  // Accent line
+  doc.setFillColor(196,98,45);
+  doc.rect(0,52,W,3,'F');
+  // Logo text
+  doc.setFont('helvetica','bold');doc.setFontSize(28);doc.setTextColor(245,240,232);
+  doc.text('APP',ML,32);
+  doc.setTextColor(232,132,90);
+  doc.text('SADO',ML+24,32);
+  // Tagline
+  doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(194,181,172);
+  doc.text('appsado.vercel.app  ·  Todo para tu asado, en una sola app',ML,42);
+  // Date top right
+  doc.setFontSize(8);doc.setTextColor(194,181,172);
+  doc.text(new Date().toLocaleDateString('es-UY'),MR,14,{align:'right'});
 
-  // Asado info
-  doc.setTextColor(61,43,31);
-  doc.setFontSize(18);doc.setFont('helvetica','bold');
-  doc.text(a.name||'Asado',14,54);
-  doc.setFontSize(10);doc.setFont('helvetica','normal');doc.setTextColor(138,123,114);
-  if(dateStr)doc.text(dateStr,14,61);
-  if(a.place)doc.text('📍 '+a.place,14,67);
-
-  // Stats boxes
-  const bx=14,by=75,bw=55,bh=18;
-  [[`$${fmt(a.total||0)}`,'Total gastado'],[`${a.friends.length}`,'Personas'],[`$${fmt((a.transfers||[]).filter(t=>!t.paid).reduce((s,t)=>s+t.amt,0))}`,'Pendiente']].forEach(([val,label],i)=>{
-    const x=bx+i*(bw+5);
-    doc.setFillColor(237,230,214);doc.roundedRect(x,by,bw,bh,3,3,'F');
-    doc.setTextColor(196,98,45);doc.setFontSize(13);doc.setFont('helvetica','bold');
-    doc.text(val,x+bw/2,by+8,{align:'center'});
-    doc.setTextColor(138,123,114);doc.setFontSize(8);doc.setFont('helvetica','normal');
-    doc.text(label,x+bw/2,by+14,{align:'center'});
-  });
-
-  let y=102;
-
-  // Transfers
-  doc.setFontSize(11);doc.setFont('helvetica','bold');doc.setTextColor(61,43,31);
-  doc.text('Transferencias',14,y);y+=7;
-  doc.setDrawColor(61,43,31,0.2);doc.setLineWidth(0.3);doc.line(14,y,196,y);y+=5;
-
-  (a.transfers||[]).forEach(t=>{
-    if(y>270){doc.addPage();y=20;}
-    const fn=a.friends[t.from]||'',tn=a.friends[t.to]||'';
-    doc.setFontSize(10);doc.setFont('helvetica','normal');
-    doc.setTextColor(t.paid?138:61,t.paid?123:43,t.paid?114:31);
-    doc.text(`${fn}  →  ${tn}`,14,y);
-    doc.setFont('helvetica','bold');
-    doc.setTextColor(t.paid?74:196,t.paid?103:98,t.paid?65:45);
-    doc.text(`$${fmt(t.amt)}`,196,y,{align:'right'});
-    if(t.paid){doc.setFontSize(8);doc.setTextColor(74,103,65);doc.text('✓ pagado',155,y);}
-    y+=6;
-  });
-
+  // ── ASADO NAME ──
+  let y=68;
+  doc.setFont('helvetica','bold');doc.setFontSize(22);doc.setTextColor(61,43,31);
+  doc.text(a.name||'Asado',ML,y);y+=8;
+  doc.setFont('helvetica','normal');doc.setFontSize(10);doc.setTextColor(138,123,114);
+  if(dateStr){doc.text('📅 '+dateStr,ML,y);y+=6;}
+  if(a.place){doc.text('📍 '+a.place,ML,y);y+=6;}
   y+=4;
-  // Gastos
-  if(y>240){doc.addPage();y=20;}
-  doc.setFontSize(11);doc.setFont('helvetica','bold');doc.setTextColor(61,43,31);
-  doc.text('Detalle de gastos',14,y);y+=7;
-  doc.line(14,y,196,y);y+=5;
 
-  (a.exps||[]).forEach(e=>{
-    if(y>270){doc.addPage();y=20;}
-    doc.setFontSize(10);doc.setFont('helvetica','normal');doc.setTextColor(61,43,31);
-    doc.text(e.desc||'Gasto',14,y);
+  // ── STATS ROW ──
+  const stats=[
+    {label:'Total gastado',val:'$'+fmt(a.total||0),color:[196,98,45]},
+    {label:'Personas',val:String(a.friends.length),color:[61,43,31]},
+    {label:'Pendiente',val:'$'+fmt(pendingAmt),color:pendingAmt>0?[196,98,45]:[74,103,65]},
+    {label:'Gastos',val:String((a.exps||[]).length),color:[61,43,31]}
+  ];
+  const sw=(MR-ML-9)/4;
+  stats.forEach((s,i)=>{
+    const x=ML+i*(sw+3);
+    doc.setFillColor(237,230,214);doc.roundedRect(x,y,sw,20,3,3,'F');
+    doc.setFillColor(...s.color);doc.roundedRect(x,y,sw,3,1,1,'F');
+    doc.setFont('helvetica','bold');doc.setFontSize(13);doc.setTextColor(...s.color);
+    doc.text(s.val,x+sw/2,y+11,{align:'center'});
+    doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(138,123,114);
+    doc.text(s.label,x+sw/2,y+17,{align:'center'});
+  });
+  y+=28;
+
+  // ── SECTION: TRANSFERENCIAS ──
+  const drawSectionTitle=(title,yy)=>{
+    doc.setFillColor(61,43,31);doc.roundedRect(ML,yy,MR-ML,8,2,2,'F');
+    doc.setFont('helvetica','bold');doc.setFontSize(10);doc.setTextColor(245,240,232);
+    doc.text(title,ML+4,yy+5.5);
+    return yy+13;
+  };
+
+  y=drawSectionTitle('TRANSFERENCIAS',y);
+
+  const pending=(a.transfers||[]).filter(t=>!t.paid);
+  const paid=(a.transfers||[]).filter(t=>t.paid);
+
+  if(!a.transfers||!a.transfers.length){
+    doc.setFont('helvetica','italic');doc.setFontSize(10);doc.setTextColor(138,123,114);
+    doc.text('Sin transferencias pendientes.',ML,y);y+=8;
+  }
+
+  pending.forEach((t,i)=>{
+    if(y>265){doc.addPage();y=20;}
+    const fn=a.friends[t.from]||'',tn=a.friends[t.to]||'';
+    const bg=i%2===0?[254,248,241]:[255,253,249];
+    doc.setFillColor(...bg);doc.rect(ML,y-4,MR-ML,10,'F');
+    doc.setFont('helvetica','normal');doc.setFontSize(10);doc.setTextColor(61,43,31);
+    doc.text(fn,ML+2,y+2);
     doc.setTextColor(138,123,114);doc.setFontSize(9);
-    doc.text(`Pagó: ${a.friends[e.payerIdx]||a.friends[0]}`,14,y+4);
-    doc.setFont('helvetica','bold');doc.setFontSize(10);doc.setTextColor(61,43,31);
-    doc.text(`$${fmt(e.amt)}`,196,y,{align:'right'});
+    doc.text('→',ML+2+doc.getTextWidth(fn)+2,y+2);
+    doc.setTextColor(61,43,31);doc.setFontSize(10);
+    doc.text(tn,ML+2+doc.getTextWidth(fn)+8,y+2);
+    doc.setFont('helvetica','bold');doc.setFontSize(11);doc.setTextColor(196,98,45);
+    doc.text('$'+fmt(t.amt),MR-2,y+2,{align:'right'});
+    if(t.notified){
+      doc.setFontSize(7);doc.setTextColor(74,103,65);doc.setFont('helvetica','italic');
+      doc.text('Avisó que pagó',MR-2,y+6,{align:'right'});
+    }
     y+=10;
   });
 
-  // Payment info
-  if(a.bankAcc||a.myPhone){
-    y+=4;
-    if(y>260){doc.addPage();y=20;}
-    doc.setFillColor(251,240,234);doc.roundedRect(14,y,182,a.myPhone?20:14,3,3,'F');
-    doc.setFontSize(9);doc.setFont('helvetica','bold');doc.setTextColor(196,98,45);
-    doc.text('Datos de pago',20,y+6);
-    doc.setFont('helvetica','normal');doc.setTextColor(61,43,31);
-    if(a.bankAcc)doc.text('Cuenta / alias: '+a.bankAcc,20,y+12);
-    if(a.myPhone)doc.text('Celular: '+a.myPhone,20,y+18);
-    y+=a.myPhone?24:18;
+  if(paid.length){
+    y+=3;
+    doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(138,123,114);
+    doc.text('YA CONFIRMADOS',ML,y);y+=5;
+    paid.forEach(t=>{
+      if(y>265){doc.addPage();y=20;}
+      const fn=a.friends[t.from]||'',tn=a.friends[t.to]||'';
+      doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(194,181,172);
+      doc.text(`${fn} → ${tn}`,ML+2,y);
+      doc.setFont('helvetica','bold');doc.setTextColor(74,103,65);
+      doc.text('$'+fmt(t.amt)+' ✓',MR-2,y,{align:'right'});
+      y+=6;
+    });
   }
 
-  // Footer
-  doc.setFontSize(8);doc.setTextColor(138,123,114);
-  doc.text('Generado con APPSADO · appsado.netlify.app · '+new Date().toLocaleDateString('es-UY'),105,285,{align:'center'});
+  y+=6;
+  if(y>240){doc.addPage();y=20;}
 
-  doc.save(`APPSADO_${(a.name||'asado').replace(/\s/g,'_')}_${a.code}.pdf`);
-  toast('PDF descargado ✓');
+  // ── SECTION: GASTOS ──
+  y=drawSectionTitle('DETALLE DE GASTOS',y);
+
+  (a.exps||[]).forEach((e,i)=>{
+    if(y>265){doc.addPage();y=20;}
+    const bg=i%2===0?[254,248,241]:[255,253,249];
+    doc.setFillColor(...bg);doc.rect(ML,y-4,MR-ML,12,'F');
+    doc.setFont('helvetica','bold');doc.setFontSize(10);doc.setTextColor(61,43,31);
+    doc.text(e.desc||'Gasto',ML+2,y+1);
+    doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(138,123,114);
+    const payer=a.friends[e.payerIdx]||a.friends[0];
+    const partsN=e.parts?e.parts.length:a.friends.length;
+    doc.text(`Pagó: ${payer}  ·  ${partsN} personas`,ML+2,y+6);
+    doc.setFont('helvetica','bold');doc.setFontSize(11);doc.setTextColor(61,43,31);
+    doc.text('$'+fmt(e.amt),MR-2,y+1,{align:'right'});
+    y+=12;
+  });
+
+  // Total line
+  y+=2;
+  doc.setDrawColor(61,43,31);doc.setLineWidth(0.5);doc.line(ML,y,MR,y);y+=6;
+  doc.setFont('helvetica','bold');doc.setFontSize(11);doc.setTextColor(61,43,31);
+  doc.text('Total',ML,y);
+  doc.setTextColor(196,98,45);
+  doc.text('$'+fmt(a.total||0),MR,y,{align:'right'});
+  y+=10;
+
+  // ── PAYMENT INFO ──
+  if(bankAcc||a.myPhone||mpLink){
+    if(y>255){doc.addPage();y=20;}
+    doc.setFillColor(251,240,234);doc.roundedRect(ML,y,MR-ML,bankAcc&&a.myPhone?22:16,3,3,'F');
+    doc.setFillColor(196,98,45);doc.roundedRect(ML,y,MR-ML,3,1,1,'F');
+    doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(196,98,45);
+    doc.text('DATOS DE COBRO',ML+4,y+8);
+    doc.setFont('helvetica','normal');doc.setTextColor(61,43,31);doc.setFontSize(9);
+    let py=y+14;
+    if(bankAcc){doc.text('Cuenta / alias: '+bankAcc,ML+4,py);py+=5;}
+    if(a.myPhone){doc.text('Celular: '+a.myPhone,ML+4,py);py+=5;}
+    if(mpLink){doc.text('MercadoPago: '+mpLink,ML+4,py);}
+    y+=bankAcc&&a.myPhone?26:20;
+  }
+
+  // ── PARTICIPANTS ──
+  if(y>255){doc.addPage();y=20;}
+  y+=4;
+  doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(138,123,114);
+  doc.text('PARTICIPANTES: '+a.friends.join('  ·  '),ML,y);
+  y+=10;
+
+  // ── FOOTER ──
+  const pages=doc.internal.getNumberOfPages();
+  for(let i=1;i<=pages;i++){
+    doc.setPage(i);
+    doc.setFillColor(61,43,31);doc.rect(0,287,W,10,'F');
+    doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(194,181,172);
+    doc.text(`APPSADO · appsado.vercel.app · Código: ${a.code}`,W/2,293,{align:'center'});
+    if(pages>1)doc.text(`${i}/${pages}`,MR,293,{align:'right'});
+  }
+
+  // iOS compatible: open in new tab instead of download
+  const pdfBlob=doc.output('blob');
+  const url=URL.createObjectURL(pdfBlob);
+  const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent);
+  if(isIOS){
+    window.open(url,'_blank');
+    toast('PDF abierto — usá Compartir para guardarlo');
+  } else {
+    const link=document.createElement('a');
+    link.href=url;
+    link.download=`APPSADO_${(a.name||'asado').replace(/\s+/g,'_')}_${a.code}.pdf`;
+    link.click();
+    toast('PDF descargado ✓');
+  }
+  setTimeout(()=>URL.revokeObjectURL(url),5000);
 }
 
 function renderShareTab(a){
@@ -1698,10 +1826,10 @@ function buildMsg(a){
   const d=a.date?new Date(a.date+'T12:00:00').toLocaleDateString('es-UY',{day:'numeric',month:'long'}):'';
   let m=`🥩 *${a.name}*`;if(d)m+=` — ${d}`;if(a.place)m+=`\n📍 ${a.place}`;
   m+=`\n💰 Total: $${fmt(a.total||0)}\n`;
-  const toMe=(a.transfers||[]).filter(t=>t.to===0&&!t.paid);
-  // Use organizer's profile data from Supabase if available, fallback to asado data
   const bankAcc=CA._organizerBank||a.bankAcc||'';
   const mpLink=CA._organizerMP||'';
+  // Only show transfers TO the organizer (index 0)
+  const toMe=(a.transfers||[]).filter(t=>t.to===0&&!t.paid);
   if(toMe.length){
     m+=`\nMe tienen que transferir:\n`;
     toMe.forEach(t=>{m+=`• ${a.friends[t.from]}: $${fmt(t.amt)}\n`;});
@@ -1710,8 +1838,12 @@ function buildMsg(a){
     if(mpLink)m+=`\nPagar con MercadoPago: ${mpLink}`;
     m+='\n';
   }
+  // Between others — only show if there are any, with a simpler note
   const btwn=(a.transfers||[]).filter(t=>t.to!==0&&t.from!==0&&!t.paid);
-  if(btwn.length){m+=`\nEntre ustedes:\n`;btwn.forEach(t=>{m+=`• ${a.friends[t.from]} → ${a.friends[t.to]}: $${fmt(t.amt)}\n`;});}
+  if(btwn.length){
+    m+=`\nTransferencias entre ustedes:\n`;
+    btwn.forEach(t=>{m+=`• ${a.friends[t.from]} → ${a.friends[t.to]}: $${fmt(t.amt)}\n`;});
+  }
   m+=`\n🔑 Ver en APPSADO: ${window.location.href.split('?')[0]}?code=${a.code}`;
   return m;
 }
@@ -1731,9 +1863,36 @@ const counts={men:0,women:0,kids:0};
 const extras={pan:false,mucho:false};
 // Achuras: cada una se maneja con su propio contador
 const achuras={morcillas:0,mollejas:0,chinchu:0,chorisP:0,chorisR:0};
-function chgCount(k,d){counts[k]=Math.max(0,counts[k]+d);document.getElementById('cnt-'+k).textContent=counts[k];calcAsado();}
-function chgAchura(k,d){achuras[k]=Math.max(0,achuras[k]+d);document.getElementById('cnt-'+k).textContent=achuras[k];calcAsado();}
-function toggleExtra(k){extras[k]=!extras[k];document.getElementById('chk-'+k).classList.toggle('on',extras[k]);calcAsado();}
+function chgCount(k,d){
+  counts[k]=Math.max(0,counts[k]+d);
+  document.getElementById('cnt-'+k).textContent=counts[k];
+  localStorage.setItem('appsado_asadometro',JSON.stringify({counts,achuras,extras}));
+  calcAsado();
+}
+function chgAchura(k,d){
+  achuras[k]=Math.max(0,achuras[k]+d);
+  document.getElementById('cnt-'+k).textContent=achuras[k];
+  localStorage.setItem('appsado_asadometro',JSON.stringify({counts,achuras,extras}));
+  calcAsado();
+}
+function toggleExtra(k){
+  extras[k]=!extras[k];
+  document.getElementById('chk-'+k).classList.toggle('on',extras[k]);
+  localStorage.setItem('appsado_asadometro',JSON.stringify({counts,achuras,extras}));
+  calcAsado();
+}
+function restoreAsadometro(){
+  try{
+    const saved=JSON.parse(localStorage.getItem('appsado_asadometro')||'{}');
+    if(saved.counts)Object.assign(counts,saved.counts);
+    if(saved.achuras)Object.assign(achuras,saved.achuras);
+    if(saved.extras)Object.assign(extras,saved.extras);
+    ['men','women','kids'].forEach(k=>document.getElementById('cnt-'+k).textContent=counts[k]);
+    ['morcillas','mollejas','chinchu','chorisP','chorisR'].forEach(k=>document.getElementById('cnt-'+k).textContent=achuras[k]);
+    ['pan','mucho'].forEach(k=>{if(extras[k])document.getElementById('chk-'+k).classList.add('on');});
+    if(Object.values(counts).some(v=>v>0))calcAsado();
+  }catch(e){}
+}
 function calcAsado(){
   const total=counts.men+counts.women+counts.kids;
   if(!total){document.getElementById('asadResult').innerHTML='<div style="text-align:center;color:var(--smoke);font-size:14px;padding:16px 0;">Agregá personas para calcular</div>';return;}
@@ -2124,15 +2283,100 @@ function fmt(n){return Math.round(n).toLocaleString('es-UY');}
 function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('on');setTimeout(()=>t.classList.remove('on'),2600);}
 function toggleFaq(el){el.classList.toggle('open');}
 function showPrivacy(){
-  alert('Política de Privacidad\n\nAPPSADO no recopila ni vende datos personales. Los asados se guardan en una base de datos segura (Supabase) únicamente para permitir la funcionalidad de la app. Si iniciás sesión, tu email se usa solo para identificarte. No enviamos spam ni compartimos tu información con terceros.');
+  alert('Política de Privacidad\n\nAPPSADO no recopila ni vende datos personales. Los asados se guardan en una base de datos segura únicamente para permitir la funcionalidad. Si iniciás sesión, tu email se usa solo para identificarte. No enviamos spam ni compartimos datos con terceros.');
+}
+
+// Custom confirm dialog
+function confirmAction(msg,confirmText='Confirmar',danger=true){
+  return new Promise(resolve=>{
+    const overlay=document.createElement('div');
+    overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:600;display:flex;align-items:center;justify-content:center;padding:20px;';
+    overlay.innerHTML=`<div style="background:var(--card);border-radius:16px;padding:24px;max-width:320px;width:100%;text-align:center;animation:fu .2s ease;">
+      <p style="font-size:15px;font-weight:500;color:var(--brown);margin-bottom:20px;line-height:1.5;">${msg}</p>
+      <div style="display:flex;gap:10px;">
+        <button id="cfm-no" style="flex:1;padding:12px;border-radius:10px;border:1.5px solid var(--bd2);background:var(--card);font-size:14px;font-weight:500;cursor:pointer;font-family:var(--fb);color:var(--brown);">Cancelar</button>
+        <button id="cfm-yes" style="flex:1;padding:12px;border-radius:10px;border:none;background:${danger?'#c0392b':'var(--ember)'};color:#fff;font-size:14px;font-weight:500;cursor:pointer;font-family:var(--fb);">${confirmText}</button>
+      </div>
+    </div>`;
+    document.body.appendChild(overlay);
+    overlay.querySelector('#cfm-yes').onclick=()=>{document.body.removeChild(overlay);resolve(true);};
+    overlay.querySelector('#cfm-no').onclick=()=>{document.body.removeChild(overlay);resolve(false);};
+    overlay.onclick=e=>{if(e.target===overlay){document.body.removeChild(overlay);resolve(false);}};
+  });
+}
+
+// Fix 2: cancel edit resets form
+function cancelEditExp(){
+  const idx=document.getElementById('editingExpIdx');if(idx)idx.value='-1';
+  const title=document.getElementById('addExpFormTitle');if(title)title.textContent='Nuevo gasto';
+  const btn=document.getElementById('btnAddExp');if(btn)btn.textContent='Agregar gasto al asado';
+  const cancelBtn=document.getElementById('btnCancelEdit');if(cancelBtn)cancelBtn.style.display='none';
+  const desc=document.getElementById('newExpDesc');const amt=document.getElementById('newExpAmt');
+  if(desc)desc.value='';if(amt)amt.value='';
+}
+
+// Fix 6: edit asado name/date/place
+async function editAsadoInfo(){
+  if(!CA)return;
+  const newName=prompt('Nombre del asado:',CA.name||'');
+  if(newName===null)return;
+  if(newName.trim())CA.name=newName.trim();
+  const newPlace=prompt('Lugar (dejá vacío si no aplica):',CA.place||'');
+  if(newPlace!==null)CA.place=newPlace.trim();
+  try{showL('Guardando...');await updateAsado(CA);addHist(CA.code,CA.name,CA.total,CA.date);renderAV(CA);toast('Asado actualizado ✓');}
+  catch(e){toast('Error al guardar.');}
+  finally{hideL();}
+}
+
+// Fix 10: delete asado from history
+async function deleteAsadoFromHist(code,e){
+  e.stopPropagation();
+  if(!await confirmAction('¿Eliminar este asado del historial?','Eliminar',true))return;
+  const h=getHist().filter(x=>x.code!==code);
+  localStorage.setItem('appsado_h',JSON.stringify(h));
+  renderHist();
+  toast('Asado eliminado del historial');
+}
+
+// Fix 13: offline error screen
+function showOfflineError(){
+  toast('Sin conexión. Verificá tu internet e intentá de nuevo.');
+}
+
+// Fix 15: simple analytics tracking
+function trackEvent(name,data={}){
+  try{
+    const events=JSON.parse(localStorage.getItem('appsado_events')||'[]');
+    events.push({name,data,ts:Date.now()});
+    localStorage.setItem('appsado_events',JSON.stringify(events.slice(-100)));
+  }catch(e){}
 }
 
 // ── INIT ──
 (async function(){
-  // Register PWA service worker
+  // Fix 5: SW update — check for new version
   if('serviceWorker' in navigator){
-    navigator.serviceWorker.register('sw.js').catch(()=>{});
+    const reg=await navigator.serviceWorker.register('sw.js').catch(()=>null);
+    if(reg){
+      reg.addEventListener('updatefound',()=>{
+        const newSW=reg.installing;
+        newSW.addEventListener('statechange',()=>{
+          if(newSW.state==='installed'&&navigator.serviceWorker.controller){
+            // New version available
+            const banner=document.createElement('div');
+            banner.style.cssText='position:fixed;bottom:70px;left:50%;transform:translateX(-50%);background:var(--brown);color:var(--cream);padding:10px 16px;border-radius:10px;font-size:13px;z-index:300;display:flex;gap:10px;align-items:center;white-space:nowrap;';
+            banner.innerHTML='Nueva versión disponible <button onclick="window.location.reload()" style="background:var(--ember);color:#fff;border:none;border-radius:6px;padding:4px 10px;font-size:12px;cursor:pointer;font-family:var(--fb);">Actualizar</button>';
+            document.body.appendChild(banner);
+          }
+        });
+      });
+    }
   }
+
+  // Fix 13: global network error handling
+  window.addEventListener('offline',()=>toast('Sin conexión a internet'));
+  window.addEventListener('online',()=>toast('Conexión restaurada ✓'));
+
   await initAuth();
   renderHist();
   initTimerUI();
