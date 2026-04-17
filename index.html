@@ -329,6 +329,25 @@ input:focus,select:focus{border-color:var(--ember);background:#fff;}
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(100px);background:var(--brown);color:var(--cream);padding:10px 20px;border-radius:10px;font-size:14px;font-weight:500;z-index:400;transition:transform .3s cubic-bezier(.4,0,.2,1);pointer-events:none;white-space:nowrap;}
 .toast.on{transform:translateX(-50%) translateY(0);}
 
+/* SKELETON LOADER */
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.skel{background:linear-gradient(90deg,var(--cream2) 25%,var(--cream3) 50%,var(--cream2) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:var(--r);}
+.skel-card{height:68px;}
+
+/* EXPENSE CATEGORIES */
+.ecat-pill{font-size:11px;padding:3px 9px;border-radius:20px;border:1.5px solid var(--bd2);cursor:pointer;color:var(--smoke);background:var(--cream);font-family:var(--fb);transition:all .15s;user-select:none;}
+.ecat-pill.on{background:var(--ember-pale);color:var(--ember);border-color:var(--ember);}
+.cat-badge{display:inline-block;font-size:10px;padding:2px 6px;border-radius:10px;font-weight:500;margin-left:4px;vertical-align:middle;}
+.cat-carne{background:#FFDDD0;color:#8B2500;}
+.cat-bebidas{background:#CCE8FF;color:#0A4A9B;}
+.cat-carbon{background:#E8E0D0;color:#4A3A1A;}
+.cat-extras{background:#EEEECC;color:#5A5A00;}
+.cat-otros{background:var(--cream2);color:var(--smoke);}
+
+/* WHATSAPP BUTTON */
+.wa-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:11px;background:#25D366;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:500;font-family:var(--fb);text-decoration:none;cursor:pointer;transition:background .15s;margin-top:8px;}
+.wa-btn:hover{background:#1EB858;}
+
 @media(max-width:480px){
   .tools-grid{grid-template-columns:repeat(3,1fr);}
   .tool-card{padding:12px 8px;}
@@ -1026,6 +1045,18 @@ function addHist(code,name,total,date){const h=getHist().filter(x=>x.code!==code
 let CA=null;
 let chartD=null,chartB=null,chartP=null;
 
+// ── CATEGORIES ──
+const CATS=[
+  {k:'carne',l:'🥩 Carne'},
+  {k:'bebidas',l:'🍺 Bebidas'},
+  {k:'carbon',l:'🪵 Carbón'},
+  {k:'extras',l:'🧂 Extras'},
+  {k:'otros',l:'🛒 Otros'}
+];
+function catLabel(k){const c=CATS.find(x=>x.k===k);return c?c.l:'🛒 Otros';}
+function setCat(el){el.closest('.ecat-row').querySelectorAll('.ecat-pill').forEach(p=>p.classList.remove('on'));el.classList.add('on');}
+function catPills(selected='carne'){return CATS.map(c=>`<span class="ecat-pill${c.k===selected?' on':''}" data-cat="${c.k}" onclick="setCat(this)">${c.l}</span>`).join('');}
+
 // ── LOADING ──
 function showL(m='Cargando...'){document.getElementById('lmsg').textContent=m;document.getElementById('lov').classList.remove('hide');}
 function hideL(){document.getElementById('lov').classList.add('hide');}
@@ -1045,7 +1076,7 @@ function go(name){
 async function renderHist(){
   const el=document.getElementById('histList');
   if(currentUser){
-    el.innerHTML='<div style="text-align:center;padding:24px;color:var(--smoke);font-size:13px;">Cargando tus asados...</div>';
+    el.innerHTML='<div class="skel skel-card"></div><div class="skel skel-card" style="opacity:.7;margin-top:10px;"></div><div class="skel skel-card" style="opacity:.45;margin-top:10px;"></div>';
     try{
       const asados=await getUserAsados();
       if(!asados.length){el.innerHTML='<div class="empty"><div class="ei">🥩</div><p>Todavía no creaste ningún asado.<br>¡Empezá uno nuevo!</p></div>';return;}
@@ -1111,6 +1142,7 @@ function startWizard(){
   go('wizard'); addExp();
 }
 function wizGo(n){
+  if(n===2){const nm=document.getElementById('evtName').value.trim();if(!nm){toast('Escribí un nombre para el asado.');return;}}
   const fr=getFriends();
   if(n>=3&&fr.length<2){toast('Agregá al menos 2 participantes.');return;}
   if(n===3){
@@ -1136,7 +1168,8 @@ function addExp(){
   <div style="display:flex;align-items:center;gap:8px;margin-top:2px;">
     <span style="font-size:12px;color:var(--smoke);white-space:nowrap;flex-shrink:0;">¿Quién pagó?</span>
     <select class="epayer" style="flex:1;">${opts}</select>
-  </div>`;
+  </div>
+  <div class="ecat-row" style="display:flex;gap:5px;flex-wrap:wrap;margin-top:8px;">${catPills('carne')}</div>`;
   document.getElementById('expList').appendChild(d);
 }
 function refreshPayerSelects(){
@@ -1148,7 +1181,7 @@ function refreshPayerSelects(){
     sel.value=cur<fr.length?cur:0;
   });
 }
-function getExps(){return Array.from(document.querySelectorAll('#expList .er')).map(r=>({desc:r.querySelector('.edesc').value.trim(),amt:parseFloat(r.querySelector('.eamt').value)||0,payerIdx:parseInt(r.querySelector('.epayer').value)||0})).filter(e=>e.amt>0);}
+function getExps(){return Array.from(document.querySelectorAll('#expList .er')).map(r=>{const catEl=r.querySelector('.ecat-pill.on');return{desc:r.querySelector('.edesc').value.trim(),amt:parseFloat(r.querySelector('.eamt').value)||0,payerIdx:parseInt(r.querySelector('.epayer').value)||0,cat:catEl?catEl.dataset.cat:'otros'};}).filter(e=>e.amt>0);}
 function buildSplitCfg(fr,exps){
   const c=document.getElementById('splitCfg');c.innerHTML='';
   exps.forEach((exp,idx)=>{
@@ -1370,7 +1403,8 @@ function renderTransTab(a){
 
   let html='';
   if(pending.length){
-    html+=`<button class="share-big-btn" onclick="showTab('share')">📲 Compartir resultado por WhatsApp</button>`;
+    const waUrl='https://wa.me/?text='+encodeURIComponent(buildMsg(a));
+    html+=`<a href="${waUrl}" target="_blank" class="share-big-btn" style="text-decoration:none;margin-bottom:12px;">📲 Compartir por WhatsApp</a>`;
     html+=`<p class="slabel" style="margin-bottom:10px;">Pendientes</p>`;
     html+=a.transfers.map((t,ti)=>{
       if(t.paid)return'';
@@ -1485,7 +1519,11 @@ async function togglePaid(ti){
   finally{hideL();}
 }
 function renderExpTab(a){
-  const list=(a.exps||[]).map(e=>`<div class="result-item"><div><div class="result-name">${e.desc||'Gasto'}</div><div style="font-size:12px;color:var(--smoke);">Pagó: ${a.friends[e.payerIdx]||a.friends[0]} · ${e.parts?e.parts.length:a.friends.length} personas</div></div><div style="text-align:right;"><div class="result-val">$${fmt(e.amt)}</div></div></div>`).join('');
+  const list=(a.exps||[]).map(e=>{
+    const catBadge=e.cat?`<span class="cat-badge cat-${e.cat}">${catLabel(e.cat)}</span>`:'';
+    const by=e.addedBy?` · <span style="color:var(--smoke2);">cargado por ${e.addedBy}</span>`:'';
+    return`<div class="result-item"><div><div class="result-name">${e.desc||'Gasto'}${catBadge}</div><div style="font-size:12px;color:var(--smoke);">Pagó: ${a.friends[e.payerIdx]||a.friends[0]} · ${e.parts?e.parts.length:a.friends.length} personas${by}</div></div><div style="text-align:right;"><div class="result-val">$${fmt(e.amt)}</div></div></div>`;
+  }).join('');
   document.getElementById('tc-expenses').innerHTML=`<div style="background:var(--card);border:1px solid var(--bd);border-radius:var(--rs);padding:0 14px;margin-bottom:20px;">${list}</div><div id="chartsC"></div>`;
 }
 function renderCharts(a){
@@ -1560,6 +1598,8 @@ function renderAddExpTab(a){
     <p style="font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.07em;color:var(--smoke);margin-bottom:10px;" id="addExpFormTitle">Nuevo gasto</p>
     <div class="et"><input type="text" id="newExpDesc" placeholder="¿Qué compraste?"><input type="number" id="newExpAmt" placeholder="$" min="0" step="1"></div>
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;"><span style="font-size:12px;color:var(--smoke);white-space:nowrap;">Lo pagué yo:</span><select id="newExpPayer">${a.friends.map((f,i)=>`<option value="${i}">${f}</option>`).join('')}</select></div>
+    <p style="font-size:12px;color:var(--smoke);margin-bottom:6px;">Categoría</p>
+    <div class="ecat-row" id="newExpCatRow" style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px;">${catPills('carne')}</div>
     <p style="font-size:12px;color:var(--smoke);margin-bottom:6px;">¿Quién consume este gasto?</p>
     <div class="pg" id="newExpParts">${a.friends.map((f,fi)=>`<span class="pill on" data-fi="${fi}" onclick="this.classList.toggle('on')">${f}</span>`).join('')}</div>
     <button id="btnCancelEdit" onclick="cancelEditExp()" style="display:none;width:100%;padding:10px;margin-top:8px;border:1.5px solid var(--bd2);border-radius:var(--rs);background:none;font-size:13px;cursor:pointer;font-family:var(--fb);color:var(--smoke);">Cancelar edición</button>
@@ -1577,6 +1617,7 @@ function editCollabExp(idx){
   document.querySelectorAll('#newExpParts .pill').forEach((p,fi)=>{
     p.classList.toggle('on',(e.parts||[]).includes(fi));
   });
+  document.querySelectorAll('#newExpCatRow .ecat-pill').forEach(p=>p.classList.toggle('on',p.dataset.cat===(e.cat||'carne')));
   document.getElementById('editingExpIdx').value=idx;
   document.getElementById('addExpFormTitle').textContent='Editando gasto';
   document.getElementById('btnAddExp').textContent='Guardar cambios';
@@ -1607,9 +1648,12 @@ async function addCollabExp(){
   const parts=Array.from(document.querySelectorAll('#newExpParts .pill.on')).map(p=>parseInt(p.dataset.fi));
   const editIdx=parseInt(document.getElementById('editingExpIdx').value);
   if(!desc){toast('Escribí qué compraste.');return;}
-  if(!amt){toast('Ingresá el monto.');return;}
+  if(!amt||amt<=0){toast('Ingresá un monto válido mayor a $0.');return;}
   if(!parts.length){toast('Seleccioná quién consume.');return;}
-  const newExp={desc,amt,payerIdx,parts};
+  const catEl=document.querySelector('#newExpCatRow .ecat-pill.on');
+  const cat=catEl?catEl.dataset.cat:'otros';
+  const addedBy=CA.friends[payerIdx]||'?';
+  const newExp={desc,amt,payerIdx,parts,cat,addedBy,addedAt:Date.now()};
   const prevExps=[...CA.exps];
   if(editIdx>=0){CA.exps[editIdx]=newExp;}
   else{CA.exps=[...(CA.exps||[]),newExp];}
@@ -1857,7 +1901,8 @@ function renderShareTab(a){
     <div class="sh-card">
       <p style="font-size:12px;font-weight:500;text-transform:uppercase;letter-spacing:.07em;color:var(--smoke);margin-bottom:10px;">Mensaje para WhatsApp</p>
       <div class="msg-box" id="shareMsg">${msg}</div>
-      <button class="cbtn" style="width:100%;background:var(--brown);" onclick="copyMsg()">Copiar mensaje</button>
+      <button class="cbtn" style="width:100%;background:var(--brown);margin-bottom:8px;" onclick="copyMsg()">Copiar mensaje</button>
+      <a href="https://wa.me/?text=${encodeURIComponent(msg)}" target="_blank" class="wa-btn">💬 Abrir en WhatsApp</a>
     </div>
     <div class="sh-card">
       <p style="font-size:12px;font-weight:500;text-transform:uppercase;letter-spacing:.07em;color:var(--smoke);margin-bottom:10px;">Resumen en PDF</p>
