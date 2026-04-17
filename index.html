@@ -375,6 +375,56 @@ input:focus,select:focus{border-color:var(--ember);background:#fff;}
 .fpill{font-size:12px;padding:5px 13px;border-radius:20px;border:1.5px solid var(--bd2);cursor:pointer;color:var(--smoke);background:var(--cream);font-family:var(--fb);transition:all .15s;user-select:none;}
 .fpill.on{background:var(--brown);color:var(--cream);border-color:var(--brown);}
 
+/* AVATAR UPLOAD */
+.av-wrap{position:relative;width:80px;height:80px;margin:0 auto 14px;cursor:pointer;}
+.av-wrap img,.av-ini{width:80px;height:80px;border-radius:50%;object-fit:cover;display:block;}
+.av-ini{background:var(--ember);display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:700;color:#fff;}
+.av-ov{position:absolute;inset:0;border-radius:50%;background:rgba(0,0,0,.42);display:flex;align-items:center;justify-content:center;font-size:20px;opacity:0;transition:opacity .2s;}
+.av-wrap:hover .av-ov,.av-wrap:focus .av-ov{opacity:1;}
+
+/* STATS CARDS */
+.stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:16px 0;}
+.stat-c{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:12px 10px;text-align:center;}
+.stat-n{font-family:var(--ff);font-size:22px;font-weight:700;color:var(--ember);}
+.stat-l{font-size:11px;color:var(--smoke);margin-top:2px;}
+
+/* CONTACT CHIPS */
+.contacts-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
+.contact-chip{display:flex;align-items:center;gap:6px;background:var(--card);border:1.5px solid var(--bd2);border-radius:20px;padding:5px 12px 5px 6px;cursor:pointer;transition:all .15s;font-family:var(--fb);font-size:13px;font-weight:500;color:var(--brown);}
+.contact-chip:hover{border-color:var(--ember);background:var(--ember-xpale);}
+.cc-av{width:24px;height:24px;border-radius:50%;overflow:hidden;flex-shrink:0;}
+.cc-av img{width:100%;height:100%;object-fit:cover;}
+.cc-ini{background:var(--ember);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff;width:100%;height:100%;}
+
+/* BENEFITS PAGE */
+.ben-hero{background:var(--brown);padding:40px 20px 32px;text-align:center;}
+.ben-card{background:var(--card);border:1px solid var(--bd);border-radius:var(--r);padding:18px;margin-bottom:10px;display:flex;gap:14px;align-items:flex-start;}
+.ben-icon{font-size:28px;flex-shrink:0;margin-top:2px;}
+.ben-title{font-size:15px;font-weight:500;color:var(--brown);margin-bottom:4px;}
+.ben-desc{font-size:13px;color:var(--smoke);line-height:1.5;}
+
+/* HOME TEASER (non-logged) */
+.teaser-block{background:linear-gradient(150deg,var(--brown) 0%,var(--brown2) 100%);padding:24px 16px 28px;}
+.teaser-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:14px 0 18px;}
+.teaser-card{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:13px 11px;}
+.teaser-icon{font-size:22px;margin-bottom:6px;}
+.teaser-name{font-size:13px;font-weight:500;color:var(--cream);}
+.teaser-desc{font-size:11px;color:var(--smoke2);margin-top:2px;line-height:1.4;}
+
+/* WRAPPED SCREEN */
+.wr-bg{min-height:100vh;background:var(--brown);padding:24px 20px 60px;}
+.wr-slide{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:24px 20px;margin-bottom:12px;text-align:center;animation:fu .4s ease;}
+.wr-big{font-family:var(--ff);font-size:56px;font-weight:900;color:var(--ember2);line-height:1;margin:8px 0;}
+.wr-emoji{font-size:48px;margin-bottom:8px;}
+.wr-label{font-size:13px;color:var(--smoke2);margin-top:8px;line-height:1.5;}
+
+/* NUDGE SHEET */
+.nudge-sheet{background:var(--card);border-radius:20px 20px 0 0;width:100%;max-width:600px;padding:8px 20px 40px;animation:slideUp .28s cubic-bezier(.4,0,.2,1);}
+.nudge-ben{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--bd);}
+.nudge-ben:last-of-type{border-bottom:none;}
+.nudge-ben-icon{font-size:22px;flex-shrink:0;}
+.nudge-ben-text{font-size:13px;color:var(--brown);line-height:1.5;}
+
 @media(max-width:480px){
   .tools-grid{grid-template-columns:repeat(3,1fr);}
   .tool-card{padding:12px 8px;}
@@ -408,6 +458,7 @@ input:focus,select:focus{border-color:var(--ember);background:#fff;}
   </div>
   <button class="user-menu-item" onclick="closeMenu();go('home');setTimeout(()=>{document.getElementById('histList').scrollIntoView({behavior:'smooth'})},300)">🥩 Mis asados</button>
   <button class="user-menu-item" onclick="go('profile');closeMenu()">👤 Mi perfil</button>
+  <button class="user-menu-item" onclick="renderWrapped();closeMenu()">🎉 Mi Wrapped</button>
   <button class="user-menu-item danger" onclick="signOut()">Cerrar sesión</button>
 </div>
 
@@ -451,6 +502,23 @@ input:focus,select:focus{border-color:var(--ember);background:#fff;}
     </div>
   </div>
 
+  <!-- BENEFITS TEASER (non-logged users) -->
+  <div class="teaser-block" id="benefitsTeaser" style="display:none;">
+    <p style="font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.1em;color:var(--ember2);margin-bottom:6px;">Creá tu cuenta gratis</p>
+    <p style="font-family:var(--ff);font-size:20px;font-weight:900;color:var(--cream);margin-bottom:4px;">Todo guardado, siempre con vos</p>
+    <p style="font-size:13px;color:var(--smoke2);font-weight:300;margin-bottom:0;">Sin contraseña — ingresás con Google o email.</p>
+    <div class="teaser-grid">
+      <div class="teaser-card"><div class="teaser-icon">☁️</div><div class="teaser-name">Historial en la nube</div><div class="teaser-desc">Accedé desde cualquier celu</div></div>
+      <div class="teaser-card"><div class="teaser-icon">📊</div><div class="teaser-name">Estadísticas</div><div class="teaser-desc">Cuánto gastaste y organizaste</div></div>
+      <div class="teaser-card"><div class="teaser-icon">👥</div><div class="teaser-name">Contactos</div><div class="teaser-desc">Tus amigos asaderos guardados</div></div>
+      <div class="teaser-card"><div class="teaser-icon">🎉</div><div class="teaser-name">Wrapped anual</div><div class="teaser-desc">Tu año al fuego resumido</div></div>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <button class="hbtn p" onclick="go('auth')" style="flex:1;">Crear cuenta →</button>
+      <button class="hbtn s" onclick="go('beneficios')" style="flex:1;font-size:14px;">Ver beneficios</button>
+    </div>
+  </div>
+
   <div style="background:var(--brown);padding:10px 20px 22px;text-align:center;">
     <p style="font-family:var(--ff);font-size:17px;font-weight:700;color:var(--cream);opacity:.85;">Listo. Sin discusiones. 🔥</p>
   </div>
@@ -470,14 +538,26 @@ input:focus,select:focus{border-color:var(--ember);background:#fff;}
 <!-- PROFILE -->
 <div class="scr" id="scr-profile">
   <div class="wrap">
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
       <button class="btn" onclick="go('home')" style="padding:6px 12px;font-size:13px;">← Volver</button>
     </div>
-    <div style="text-align:center;margin-bottom:28px;">
-      <div id="profileAvatar" style="width:72px;height:72px;border-radius:50%;background:var(--ember);display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:700;color:#fff;margin:0 auto 12px;"></div>
+
+    <!-- Avatar + name + stats -->
+    <div style="text-align:center;margin-bottom:20px;">
+      <div class="av-wrap" onclick="document.getElementById('avatarInput').click()" title="Cambiar foto">
+        <div id="profileAvatarEl"></div>
+        <div class="av-ov">📷</div>
+      </div>
+      <input type="file" id="avatarInput" accept="image/*" style="display:none;" onchange="handleAvatarUpload(this)">
       <div id="profileName" style="font-family:var(--ff);font-size:22px;font-weight:700;"></div>
       <div id="profileEmail" style="font-size:14px;color:var(--smoke);margin-top:4px;"></div>
+      <p style="font-size:11px;color:var(--smoke);margin-top:6px;">Tocá la foto para cambiarla</p>
+      <!-- Stats row -->
+      <div class="stat-row" id="profileStatsRow" style="display:none;"></div>
+      <!-- Wrapped button -->
+      <button id="btnWrapped" onclick="renderWrapped()" style="display:none;margin-top:8px;font-size:13px;padding:7px 16px;border-radius:20px;border:1.5px solid var(--ember);background:var(--ember-xpale);color:var(--ember);cursor:pointer;font-family:var(--fb);font-weight:500;">🎉 Ver mi Wrapped</button>
     </div>
+
     <div class="fc">
       <label class="fl">Nombre para mostrar</label>
       <input type="text" id="profileNameInput" placeholder="Tu nombre" style="margin-bottom:6px;">
@@ -490,7 +570,15 @@ input:focus,select:focus{border-color:var(--ember);background:#fff;}
       <p style="font-size:12px;color:var(--smoke);margin-top:6px;">Se incluye automáticamente en el mensaje de cobro de cada asado que creás</p>
     </div>
     <button class="btn p" onclick="saveProfile()" style="width:100%;padding:13px;margin-top:4px;">Guardar cambios</button>
-    <div style="margin-top:24px;text-align:center;">
+
+    <!-- Contacts section -->
+    <div id="profileContactsSection" style="display:none;margin-top:22px;">
+      <p class="slabel">Tus contactos asaderos</p>
+      <div id="profileContactsList" class="contacts-row"></div>
+    </div>
+
+    <div style="margin-top:24px;">
+      <button class="btn" onclick="go('beneficios')" style="width:100%;padding:12px;margin-bottom:8px;">✨ Beneficios de tu cuenta</button>
       <button class="btn" onclick="signOut()" style="color:#c0392b;border-color:#c0392b;width:100%;padding:12px;">Cerrar sesión</button>
     </div>
   </div>
@@ -519,6 +607,10 @@ input:focus,select:focus{border-color:var(--ember);background:#fff;}
     </div>
     <div class="ws" id="ws2">
       <h2 class="wt">Participantes</h2><p class="wsub">Vos primero, como organizador</p>
+      <div id="wizContactsBlock" style="display:none;margin-bottom:12px;">
+        <p style="font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.07em;color:var(--smoke);margin-bottom:8px;">Tus contactos — tocá para agregar</p>
+        <div id="wizContactChips" class="contacts-row"></div>
+      </div>
       <div class="fc">
         <div id="friendsList"><div class="ir"><input type="text" placeholder="Tu nombre"><button class="bic d" onclick="rmF(this)">×</button></div></div>
         <button class="badd" onclick="addF()">+ Agregar participante</button>
@@ -624,6 +716,55 @@ input:focus,select:focus{border-color:var(--ember);background:#fff;}
     <div class="tc" id="tc-people"></div>
     <div class="tc" id="tc-addexp"></div>
     <div class="tc" id="tc-share"></div>
+  </div>
+</div>
+
+<!-- BENEFICIOS -->
+<div class="scr" id="scr-beneficios">
+  <div class="ben-hero">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;">
+      <button onclick="go('home')" style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);border-radius:8px;padding:6px 12px;font-size:13px;color:var(--cream);cursor:pointer;font-family:var(--fb);">← Volver</button>
+    </div>
+    <div style="font-size:11px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--ember2);margin-bottom:10px;">¿Por qué crear una cuenta?</div>
+    <div style="font-family:var(--ff);font-size:30px;font-weight:900;color:var(--cream);line-height:1.05;margin-bottom:14px;">Todo guardado,<br>siempre con vos 🔥</div>
+    <p style="font-size:14px;color:var(--smoke2);font-weight:300;line-height:1.6;max-width:320px;margin:0 auto;">Registrarse es gratis, rápido y sin contraseña.</p>
+  </div>
+  <div class="wrap" style="padding-top:16px;">
+    <div class="ben-card">
+      <div class="ben-icon">☁️</div>
+      <div><div class="ben-title">Historial en la nube</div><div class="ben-desc">Todos tus asados guardados y accesibles desde cualquier dispositivo. Nunca más perdés el registro.</div></div>
+    </div>
+    <div class="ben-card">
+      <div class="ben-icon">📸</div>
+      <div><div class="ben-title">Foto de perfil</div><div class="ben-desc">Subí tu foto y aparecés identificado/a en los asados que organizás o a los que entrás.</div></div>
+    </div>
+    <div class="ben-card">
+      <div class="ben-icon">📊</div>
+      <div><div class="ben-title">Tus estadísticas</div><div class="ben-desc">Cuántos asados organizaste, cuánto gastaste en total, y un resumen mensual para no perder la cuenta.</div></div>
+    </div>
+    <div class="ben-card">
+      <div class="ben-icon">👥</div>
+      <div><div class="ben-title">Contactos y amigos</div><div class="ben-desc">Guardá tu red de asaderos. Cuando un amigo registrado entra a tu asado, sus datos de pago se cargan solos.</div></div>
+    </div>
+    <div class="ben-card">
+      <div class="ben-icon">🎉</div>
+      <div><div class="ben-title">Wrapped anual</div><div class="ben-desc">Al fin del año, un resumen estilo Spotify con tus highlights asaderos: asados, gasto total, categoría favorita y más.</div></div>
+    </div>
+    <button class="btn p" onclick="go('auth')" style="width:100%;padding:14px;font-size:16px;margin-top:8px;">Crear cuenta gratis →</button>
+    <button class="btn" onclick="go('home')" style="width:100%;padding:12px;margin-top:10px;">Ahora no, seguir sin cuenta</button>
+  </div>
+</div>
+
+<!-- WRAPPED -->
+<div class="scr" id="scr-wrapped">
+  <div class="wr-bg">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;">
+      <button onclick="go('profile')" style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);border-radius:8px;padding:6px 12px;font-size:13px;color:var(--cream);cursor:pointer;font-family:var(--fb);">← Volver</button>
+    </div>
+    <div style="font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.12em;color:var(--ember2);margin-bottom:6px;" id="wrYear">2025</div>
+    <div style="font-family:var(--ff);font-size:36px;font-weight:900;color:var(--cream);line-height:1.05;margin-bottom:24px;">Tu año<br><em style="color:var(--ember2);">asadero</em> 🔥</div>
+    <div id="wrSlides"></div>
+    <button class="share-big-btn" onclick="shareWrapped()" style="margin-top:16px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);">💬 Compartir mi Wrapped</button>
   </div>
 </div>
 
@@ -952,21 +1093,30 @@ async function loadUserFromToken(token){
 function updateAuthUI(){
   const acts=document.getElementById('tbActs');
   if(currentUser){
-    const initials=ini(currentUser.name);
+    const avatar=cachedProfile?.avatar;
+    const avHTML=avatar
+      ?`<img src="${avatar}" style="width:24px;height:24px;border-radius:50%;object-fit:cover;flex-shrink:0;">`
+      :`<div class="user-chip-av">${ini(currentUser.name)}</div>`;
     acts.innerHTML=`
       <button class="tbb" onclick="go('join')">Entrar 🥩</button>
       <div class="user-chip" onclick="toggleMenu()">
-        <div class="user-chip-av">${initials}</div>
+        ${avHTML}
         <div class="user-chip-name">${currentUser.name}</div>
       </div>
       <button class="tbb p" onclick="startWizard()">+ Asado</button>`;
     document.getElementById('menuUserName').textContent=currentUser.name;
     document.getElementById('menuUserEmail').textContent=currentUser.email;
+    // Show/hide benefits teaser
+    const bt=document.getElementById('benefitsTeaser');
+    if(bt)bt.style.display='none';
   } else {
     acts.innerHTML=`
       <button class="tbb" onclick="go('join')">Entrar 🥩</button>
       <button class="tbb" onclick="go('auth')">Ingresar</button>
       <button class="tbb p" onclick="startWizard()">+ Asado</button>`;
+    // Show benefits teaser for non-logged users
+    const bt=document.getElementById('benefitsTeaser');
+    if(bt)bt.style.display='block';
   }
 }
 
@@ -1047,11 +1197,13 @@ function hideL(){document.getElementById('lov').classList.add('hide');}
 // ── NAV ──
 function go(name){
   document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on'));
-  document.getElementById('scr-'+name).classList.add('on');
+  const el=document.getElementById('scr-'+name);
+  if(!el){console.warn('Screen not found: scr-'+name);return;}
+  el.classList.add('on');
   const fab=document.getElementById('fabAdd');
   if(fab)fab.classList.toggle('show',name==='asado');
   if(name!=='asado'){stopPolling();transFilter='all';}
-  if(name==='home')renderHist();
+  if(name==='home'){renderHist();}
   if(name==='auth')document.getElementById('authSent').style.display='none';
   if(name==='profile')loadProfileScreen();
   if(name==='asadometro')setTimeout(restoreAsadometro,100);
@@ -1128,7 +1280,9 @@ function startWizard(){
   document.querySelectorAll('.ws').forEach(s=>s.classList.remove('on'));
   document.getElementById('ws1').classList.add('on');
   document.getElementById('wizProg').style.width='25%';
-  go('wizard'); addExp();
+  go('wizard');addExp();
+  // Load contact chips asynchronously
+  if(currentUser)renderContactChips();
 }
 function wizGo(n){
   if(n===2){const nm=document.getElementById('evtName').value.trim();if(!nm){toast('Escribí un nombre para el asado.');return;}}
@@ -1204,7 +1358,22 @@ async function finishAsado(){
     createdAt:Date.now(),
     creatorId:currentUser?currentUser.id:null
   };
-  try{showL('Guardando en la nube...');await saveAsado(a);addHist(a.code,a.name,a.total,a.date);CA=a;renderAV(a);go('asado');}
+  try{
+    showL('Guardando en la nube...');
+    await saveAsado(a);
+    addHist(a.code,a.name,a.total,a.date);
+    CA=a;renderAV(a);go('asado');
+    // Save participants as contacts (registered users)
+    if(currentUser){
+      const prof=getProfileData();
+      const myName=(prof.displayName||currentUser.name||'').toLowerCase();
+      fr.forEach(name=>{
+        if(name.toLowerCase()!==myName)saveContact(name).catch(()=>{});
+      });
+    }
+    // Nudge non-registered users
+    if(!currentUser)showRegisterNudge();
+  }
   catch(e){toast('Error al guardar. Revisá tu conexión.');console.error(e);}
   finally{hideL();btn.disabled=false;btn.textContent='Guardar y calcular 🎉';}
 }
@@ -1316,13 +1485,22 @@ function getMyParticipantIdx(){
 
 function setMyParticipantIdx(idx){
   if(!CA)return;
-  localStorage.setItem('appsado_me_'+CA.code, idx);
+  localStorage.setItem('appsado_me_'+CA.code,idx);
   // Save their MP link to asado participant map
   if(currentUser){
     const prof=getProfileData();
     if(prof.mpLink){
       if(!CA._participantMP)CA._participantMP={};
       CA._participantMP[idx]=prof.mpLink;
+    }
+    // If organizer has a registered account, auto-save this participant as a contact
+    // (stores their current profile data so organizer can reuse next time)
+    if(CA.creatorId&&CA.creatorId!==currentUser.id){
+      // Save this user's data to the ORGANIZER's contacts — but we can only write own contacts
+      // Instead: save organizer + co-participants as contacts for current user
+      CA.friends.forEach((name,fi)=>{
+        if(fi!==idx)saveContact(name).catch(()=>{});
+      });
     }
   }
   renderAV(CA);
@@ -2320,11 +2498,12 @@ async function upsertProfile(data){
 
 function getProfileData(){
   // Returns cached profile or localStorage fallback
-  if(cachedProfile) return {
-    displayName: cachedProfile.display_name||'',
-    bankAcc: cachedProfile.bank_acc||'',
-    mpLink: cachedProfile.mp_link||'',
-    phone: cachedProfile.phone||''
+  if(cachedProfile)return{
+    displayName:cachedProfile.display_name||'',
+    bankAcc:cachedProfile.bank_acc||'',
+    mpLink:cachedProfile.mp_link||'',
+    phone:cachedProfile.phone||'',
+    avatar:cachedProfile.avatar||''
   };
   return JSON.parse(localStorage.getItem('appsado_profile')||'{}');
 }
@@ -2333,44 +2512,56 @@ async function loadProfileScreen(){
   if(!currentUser){ go('auth'); return; }
   showL('Cargando perfil...');
   try{
-    const prof = await fetchProfile();
-    document.getElementById('profileAvatar').textContent = ini(currentUser.name);
-    document.getElementById('profileName').textContent = prof.display_name || currentUser.name;
-    document.getElementById('profileEmail').textContent = currentUser.email;
-    document.getElementById('profileNameInput').value = prof.display_name || currentUser.name || '';
-    document.getElementById('profileBank').value = prof.bank_acc || '';
-    document.getElementById('profileMP').value = prof.mp_link || '';
+    const [prof,,stats,contacts]=await Promise.all([
+      fetchProfile(),
+      Promise.resolve(),
+      fetchStats(),
+      fetchContacts()
+    ]);
+    // Avatar
+    renderAvatarUI(prof.avatar||'');
+    document.getElementById('profileName').textContent=prof.display_name||currentUser.name;
+    document.getElementById('profileEmail').textContent=currentUser.email;
+    document.getElementById('profileNameInput').value=prof.display_name||currentUser.name||'';
+    document.getElementById('profileBank').value=prof.bank_acc||'';
+    document.getElementById('profileMP').value=prof.mp_link||'';
+    // Stats
+    renderProfileStats(stats);
+    // Contacts
+    renderProfileContacts(contacts);
   }catch(e){ toast('Error al cargar perfil.'); }
   finally{ hideL(); }
 }
 
 async function saveProfile(){
-  const displayName = document.getElementById('profileNameInput').value.trim();
-  const bankAcc = document.getElementById('profileBank').value.trim();
-  const mpLink = document.getElementById('profileMP').value.trim();
-  const phone = document.getElementById('myPhone') ? document.getElementById('myPhone').value.trim() : '';
+  const displayName=document.getElementById('profileNameInput').value.trim();
+  const bankAcc=document.getElementById('profileBank').value.trim();
+  const mpLink=document.getElementById('profileMP').value.trim();
+  const phone=document.getElementById('myPhone')?document.getElementById('myPhone').value.trim():'';
 
   // Save to localStorage as fallback
-  localStorage.setItem('appsado_profile', JSON.stringify({displayName, bankAcc, mpLink}));
+  localStorage.setItem('appsado_profile',JSON.stringify({displayName,bankAcc,mpLink}));
 
   if(currentUser){
     try{
       showL('Guardando perfil...');
+      const avatar=cachedProfile?.avatar||null;
       await upsertProfile({
-        display_name: displayName,
-        bank_acc: bankAcc,
-        mp_link: mpLink,
-        phone: phone
+        display_name:displayName,
+        bank_acc:bankAcc,
+        mp_link:mpLink,
+        phone,
+        ...(avatar?{avatar}:{})
       });
-      cachedProfile = {display_name:displayName, bank_acc:bankAcc, mp_link:mpLink, phone};
-    }catch(e){ toast('Error al guardar en la nube.'); }
-    finally{ hideL(); }
+      cachedProfile={...(cachedProfile||{}),display_name:displayName,bank_acc:bankAcc,mp_link:mpLink,phone};
+    }catch(e){toast('Error al guardar en la nube.');}
+    finally{hideL();}
   }
 
-  if(displayName && currentUser) currentUser.name = displayName;
+  if(displayName&&currentUser)currentUser.name=displayName;
   updateAuthUI();
-  document.getElementById('profileName').textContent = displayName || currentUser?.name || '';
-  document.getElementById('profileAvatar').textContent = ini(displayName || currentUser?.name || '');
+  document.getElementById('profileName').textContent=displayName||currentUser?.name||'';
+  renderAvatarUI(cachedProfile?.avatar||'');
   toast('Perfil guardado ✓');
 }
 
@@ -2575,6 +2766,278 @@ function saveTrucoToAsado(){
   updateAsado(CA).then(()=>{toast('Resultado guardado en el asado ✓');}).catch(()=>{toast('Error al guardar.');CA.exps.pop();});
 }
 
+// ── AVATAR UPLOAD ──
+function handleAvatarUpload(input){
+  const file=input.files[0];
+  if(!file)return;
+  if(!currentUser){toast('Ingresá para guardar tu foto.');return;}
+  const img=new Image();
+  img.onload=async()=>{
+    const canvas=document.createElement('canvas');
+    canvas.width=200;canvas.height=200;
+    const ctx=canvas.getContext('2d');
+    const size=Math.min(img.width,img.height);
+    const x=(img.width-size)/2;
+    const y=(img.height-size)/2;
+    ctx.beginPath();ctx.arc(100,100,100,0,Math.PI*2);ctx.closePath();ctx.clip();
+    ctx.drawImage(img,x,y,size,size,0,0,200,200);
+    const b64=canvas.toDataURL('image/jpeg',0.72);
+    try{
+      showL('Subiendo foto...');
+      await upsertProfile({avatar:b64});
+      if(cachedProfile)cachedProfile.avatar=b64;
+      renderAvatarUI(b64);
+      updateAuthUI();
+      toast('Foto actualizada ✓');
+    }catch(e){toast('Error al subir la foto.');}
+    finally{hideL();}
+    URL.revokeObjectURL(img.src);
+  };
+  img.src=URL.createObjectURL(file);
+}
+
+function renderAvatarUI(b64){
+  const el=document.getElementById('profileAvatarEl');
+  if(!el)return;
+  if(b64){
+    el.innerHTML=`<img src="${b64}" style="width:80px;height:80px;border-radius:50%;object-fit:cover;display:block;">`;
+  }else{
+    const name=currentUser?.name||'?';
+    el.innerHTML=`<div class="av-ini">${ini(name)}</div>`;
+  }
+}
+
+// ── STATS ──
+async function fetchStats(){
+  if(!currentUser)return null;
+  try{
+    const asados=await getUserAsados();
+    const count=asados.length;
+    const total=asados.reduce((s,a)=>s+(a.total||0),0);
+    const saldados=asados.filter(a=>(a.transfers||[]).length>0&&(a.transfers||[]).every(t=>t.paid)).length;
+    return{count,total,saldados};
+  }catch(e){return null;}
+}
+
+function renderProfileStats(stats){
+  const row=document.getElementById('profileStatsRow');
+  if(!row||!stats)return;
+  row.style.display='grid';
+  row.innerHTML=`
+    <div class="stat-c"><div class="stat-n">${stats.count}</div><div class="stat-l">asados</div></div>
+    <div class="stat-c"><div class="stat-n">$${stats.total>=1000?Math.round(stats.total/1000)+'k':fmt(stats.total)}</div><div class="stat-l">gastado</div></div>
+    <div class="stat-c"><div class="stat-n">${stats.saldados}</div><div class="stat-l">saldados</div></div>`;
+  const btn=document.getElementById('btnWrapped');
+  if(btn&&stats.count>0)btn.style.display='inline-block';
+}
+
+// ── CONTACTS ──
+let cachedContacts=null;
+async function fetchContacts(){
+  if(!currentUser)return[];
+  if(cachedContacts)return cachedContacts;
+  try{
+    const token=localStorage.getItem('sb_access_token');
+    const r=await fetch(SB+'/rest/v1/contacts?user_id=eq.'+currentUser.id+'&order=name.asc',{
+      headers:{'apikey':SK,'Authorization':'Bearer '+token}
+    });
+    if(!r.ok)return[];
+    cachedContacts=await r.json();
+    return cachedContacts||[];
+  }catch(e){return[];}
+}
+
+async function saveContact(name,data={}){
+  if(!currentUser||!name)return;
+  try{
+    const token=localStorage.getItem('sb_access_token');
+    await fetch(SB+'/rest/v1/contacts',{
+      method:'POST',
+      headers:{'apikey':SK,'Authorization':'Bearer '+token,'Content-Type':'application/json','Prefer':'resolution=merge-duplicates'},
+      body:JSON.stringify({user_id:currentUser.id,name,...data})
+    });
+    cachedContacts=null; // invalidate cache
+  }catch(e){}
+}
+
+async function renderContactChips(){
+  const block=document.getElementById('wizContactsBlock');
+  const chipsEl=document.getElementById('wizContactChips');
+  if(!block||!chipsEl)return;
+  if(!currentUser){block.style.display='none';return;}
+  const contacts=await fetchContacts();
+  if(!contacts.length){block.style.display='none';return;}
+  block.style.display='block';
+  chipsEl.innerHTML=contacts.map(c=>{
+    const avHTML=c.avatar
+      ?`<div class="cc-av"><img src="${c.avatar}"></div>`
+      :`<div class="cc-av"><div class="cc-ini">${ini(c.name)}</div></div>`;
+    return`<button class="contact-chip" onclick="addContactToWizard('${c.name.replace(/'/g,"\\'")}')">
+      ${avHTML}<span>${c.name}</span></button>`;
+  }).join('');
+}
+
+function addContactToWizard(name){
+  // Check if already in list
+  const existing=Array.from(document.querySelectorAll('#friendsList .ir input')).map(i=>i.value.trim().toLowerCase());
+  if(existing.includes(name.toLowerCase())){toast(name+' ya está en la lista.');return;}
+  const d=document.createElement('div');d.className='ir';
+  d.innerHTML=`<input type="text" value="${name}"><button class="bic d" onclick="rmF(this)">×</button>`;
+  document.getElementById('friendsList').appendChild(d);
+  toast(name+' agregado ✓');
+}
+
+function renderProfileContacts(contacts){
+  const section=document.getElementById('profileContactsSection');
+  const list=document.getElementById('profileContactsList');
+  if(!section||!list||!contacts.length){if(section)section.style.display='none';return;}
+  section.style.display='block';
+  list.innerHTML=contacts.slice(0,12).map(c=>{
+    const avHTML=c.avatar
+      ?`<div class="cc-av"><img src="${c.avatar}"></div>`
+      :`<div class="cc-av"><div class="cc-ini">${ini(c.name)}</div></div>`;
+    const sub=[c.bank_acc,c.mp_link].filter(Boolean).join(' · ');
+    return`<div style="display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--bd);border-radius:var(--rs);padding:10px 12px;width:100%;">
+      ${avHTML}
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:14px;font-weight:500;">${c.name}</div>
+        ${sub?`<div style="font-size:11px;color:var(--smoke);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${sub}</div>`:''}
+      </div>
+    </div>`;
+  }).join('');
+  // For small screens: back to contacts-row for chips layout
+  list.style.display='flex';
+  list.style.flexDirection='column';
+  list.style.gap='6px';
+}
+
+// ── NUDGE ──
+function showRegisterNudge(){
+  if(currentUser)return;
+  const key='appsado_nudge';
+  const visits=parseInt(localStorage.getItem('appsado_visits')||'0');
+  const lastNudge=parseInt(localStorage.getItem(key)||'0');
+  // Show if never shown, or if >7 days have passed
+  const shouldShow=!lastNudge||(Date.now()-lastNudge>7*24*60*60*1000);
+  if(!shouldShow)return;
+  localStorage.setItem(key,String(Date.now()));
+  setTimeout(()=>{
+    const ov=document.createElement('div');
+    ov.className='modal-ov';
+    ov.innerHTML=`<div class="nudge-sheet">
+      <div class="modal-handle" onclick="this.closest('.modal-ov').remove()"></div>
+      <div style="text-align:center;margin-bottom:18px;">
+        <div style="font-size:40px;margin-bottom:8px;">🔥</div>
+        <div style="font-family:var(--ff);font-size:22px;font-weight:900;color:var(--brown);">¡Tu asado quedó guardado!</div>
+        <p style="font-size:13px;color:var(--smoke);margin-top:6px;line-height:1.6;">Registrate gratis para verlo desde cualquier dispositivo y acceder a más beneficios.</p>
+      </div>
+      <div style="margin-bottom:18px;">
+        <div class="nudge-ben"><div class="nudge-ben-icon">☁️</div><div class="nudge-ben-text"><strong>Historial en la nube</strong> — accedé desde cualquier celu</div></div>
+        <div class="nudge-ben"><div class="nudge-ben-icon">📊</div><div class="nudge-ben-text"><strong>Estadísticas personales</strong> — cuánto gastaste y cuántos organizaste</div></div>
+        <div class="nudge-ben"><div class="nudge-ben-icon">🎉</div><div class="nudge-ben-text"><strong>Wrapped anual</strong> — tu año asadero resumido</div></div>
+      </div>
+      <button class="btn p" onclick="this.closest('.modal-ov').remove();go('auth')" style="width:100%;padding:13px;font-size:15px;margin-bottom:8px;">Crear cuenta gratis →</button>
+      <button onclick="this.closest('.modal-ov').remove()" style="width:100%;padding:10px;border:none;background:none;font-size:13px;color:var(--smoke);cursor:pointer;font-family:var(--fb);">Ahora no</button>
+      <p style="text-align:center;font-size:11px;color:var(--smoke);margin-top:8px;"><span onclick="this.closest('.modal-ov').remove();go('beneficios')" style="color:var(--ember);cursor:pointer;">Ver todos los beneficios →</span></p>
+    </div>`;
+    ov.addEventListener('click',e=>{if(e.target===ov)ov.remove();});
+    document.body.appendChild(ov);
+  },1200);
+}
+
+// ── WRAPPED ──
+async function renderWrapped(){
+  if(!currentUser){go('auth');return;}
+  go('wrapped');
+  const year=new Date().getFullYear();
+  document.getElementById('wrYear').textContent=year;
+  const slides=document.getElementById('wrSlides');
+  slides.innerHTML='<div style="text-align:center;padding:40px 0;"><div class="spin" style="border-top-color:var(--ember2);margin:0 auto;"></div></div>';
+  try{
+    const asados=await getUserAsados();
+    const yearData=asados.filter(a=>a.date&&a.date.startsWith(String(year)));
+    const data=yearData.length>=1?yearData:asados;
+    const count=data.length;
+    if(!count){
+      slides.innerHTML=`<div class="wr-slide"><div class="wr-emoji">🥩</div><div style="font-size:16px;color:var(--cream);font-weight:500;margin-top:8px;">Todavía no hay datos</div><div class="wr-label">Creá asados para ver tu Wrapped</div></div>`;
+      return;
+    }
+    const totalSpent=data.reduce((s,a)=>s+(a.total||0),0);
+    const totalPax=data.reduce((s,a)=>s+(a.friends?.length||0),0);
+    const avgPax=count?Math.round(totalPax/count):0;
+    // Category breakdown
+    const catAmt={};
+    data.forEach(a=>(a.exps||[]).forEach(e=>{const k=e.cat||'otros';catAmt[k]=(catAmt[k]||0)+e.amt;}));
+    const topCatEntry=Object.entries(catAmt).sort((a,b)=>b[1]-a[1])[0];
+    const topCatLabel=topCatEntry?catLabel(topCatEntry[0]):'';
+    // Month breakdown
+    const monthCnt={};
+    data.forEach(a=>{if(a.date){const m=a.date.slice(0,7);monthCnt[m]=(monthCnt[m]||0)+1;}});
+    const topMonthEntry=Object.entries(monthCnt).sort((a,b)=>b[1]-a[1])[0];
+    const topMonthLabel=topMonthEntry?new Date(topMonthEntry[0]+'-01').toLocaleDateString('es-UY',{month:'long'}):'';
+    // Paid on time
+    const onTime=data.filter(a=>(a.transfers||[]).length>0&&(a.transfers||[]).every(t=>t.paid)).length;
+    let html='';
+    html+=`<div class="wr-slide"><div class="wr-emoji">🔥</div><div class="wr-label" style="color:var(--smoke2);margin-bottom:2px;">${yearData.length?year+' —':''} organizaste</div><div class="wr-big">${count}</div><div class="wr-label">asado${count!==1?'s':''} en total</div></div>`;
+    html+=`<div class="wr-slide"><div class="wr-emoji">💸</div><div class="wr-label" style="color:var(--smoke2);margin-bottom:2px;">Entre todos gastaron</div><div class="wr-big" style="font-size:${totalSpent>=100000?'40px':'56px'};">$${fmt(totalSpent)}</div><div class="wr-label">en todos los asados</div></div>`;
+    if(avgPax)html+=`<div class="wr-slide"><div class="wr-emoji">👥</div><div class="wr-label" style="color:var(--smoke2);margin-bottom:2px;">Promedio de personas</div><div class="wr-big">${avgPax}</div><div class="wr-label">por asado</div></div>`;
+    if(topCatLabel)html+=`<div class="wr-slide"><div class="wr-label" style="color:var(--smoke2);margin-bottom:8px;">Tu gasto principal fue</div><div style="font-size:42px;font-weight:700;color:var(--ember2);font-family:var(--ff);">${topCatLabel}</div><div class="wr-label">$${fmt(topCatEntry[1])} en total</div></div>`;
+    if(topMonthLabel)html+=`<div class="wr-slide"><div class="wr-emoji">📅</div><div class="wr-label" style="color:var(--smoke2);margin-bottom:2px;">Tu mes más asadero</div><div class="wr-big" style="font-size:38px;text-transform:capitalize;">${topMonthLabel}</div><div class="wr-label">${topMonthEntry[1]} asado${topMonthEntry[1]!==1?'s':''}</div></div>`;
+    if(onTime>0)html+=`<div class="wr-slide"><div class="wr-emoji">✅</div><div class="wr-label" style="color:var(--smoke2);margin-bottom:2px;">Asados saldados</div><div class="wr-big">${onTime}</div><div class="wr-label">todos pagaron 🙌</div></div>`;
+    html+=`<div class="wr-slide"><div class="wr-emoji">🥩</div><div style="font-size:20px;font-weight:700;color:var(--cream);font-family:var(--ff);margin:8px 0;">¡Otro año más al fuego!</div><div class="wr-label">Gracias por usar APPSADO<br>Hecho con 🔥 para los asados del Río de la Plata</div></div>`;
+    slides.innerHTML=html;
+  }catch(e){
+    slides.innerHTML=`<div class="wr-slide"><div class="wr-emoji">⚠️</div><div style="color:var(--smoke2);font-size:14px;margin-top:8px;">Error al cargar estadísticas</div></div>`;
+  }
+}
+
+function shareWrapped(){
+  const year=document.getElementById('wrYear')?.textContent||new Date().getFullYear();
+  const msg=`🔥 Mi Wrapped Asadero ${year}\n\n¡Fue un gran año al fuego! 🥩\nOrganicé mis asados con APPSADO — appsado.vercel.app`;
+  if(navigator.share){navigator.share({title:'Mi Wrapped Asadero '+year,text:msg}).catch(()=>{});}
+  else{navigator.clipboard.writeText(msg).then(()=>toast('Copiado para compartir ✓'));}
+}
+
+// ── MONTHLY SUMMARY ──
+async function checkMonthlySummary(){
+  if(!currentUser)return;
+  const key='appsado_monthly_'+new Date().getMonth()+'_'+new Date().getFullYear();
+  if(localStorage.getItem(key))return;
+  // Get previous month
+  const now=new Date();
+  const prevMonth=now.getMonth()===0?11:now.getMonth()-1;
+  const prevYear=now.getMonth()===0?now.getFullYear()-1:now.getFullYear();
+  const prefix=String(prevYear)+'-'+String(prevMonth+1).padStart(2,'0');
+  try{
+    const asados=await getUserAsados();
+    const prev=asados.filter(a=>a.date&&a.date.startsWith(prefix));
+    if(!prev.length)return;
+    localStorage.setItem(key,'1');
+    const total=prev.reduce((s,a)=>s+(a.total||0),0);
+    const monthName=new Date(prevYear,prevMonth,1).toLocaleDateString('es-UY',{month:'long'});
+    setTimeout(()=>{
+      const ov=document.createElement('div');
+      ov.className='modal-ov';
+      ov.innerHTML=`<div class="nudge-sheet">
+        <div class="modal-handle" onclick="this.closest('.modal-ov').remove()"></div>
+        <div style="text-align:center;margin-bottom:16px;">
+          <div style="font-size:36px;margin-bottom:6px;">📊</div>
+          <div style="font-family:var(--ff);font-size:20px;font-weight:900;color:var(--brown);text-transform:capitalize;">Tu ${monthName}</div>
+          <p style="font-size:13px;color:var(--smoke);margin-top:6px;">Resumen del mes pasado</p>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px;">
+          <div class="stat-c"><div class="stat-n">${prev.length}</div><div class="stat-l">asado${prev.length!==1?'s':''}</div></div>
+          <div class="stat-c"><div class="stat-n">$${total>=1000?Math.round(total/1000)+'k':fmt(total)}</div><div class="stat-l">gastado</div></div>
+        </div>
+        <button class="btn p" onclick="this.closest('.modal-ov').remove();renderWrapped()" style="width:100%;padding:12px;margin-bottom:8px;">Ver mi Wrapped completo →</button>
+        <button onclick="this.closest('.modal-ov').remove()" style="width:100%;padding:10px;border:none;background:none;font-size:13px;color:var(--smoke);cursor:pointer;font-family:var(--fb);">Cerrar</button>
+      </div>`;
+      ov.addEventListener('click',e=>{if(e.target===ov)ov.remove();});
+      document.body.appendChild(ov);
+    },2000);
+  }catch(e){}
+}
+
 // ── SHOPPING LIST (ASADÓMETRO) ──
 function buildShoppingList(){
   const total=counts.men+counts.women+counts.kids;
@@ -2623,10 +3086,18 @@ function buildShoppingList(){
   window.addEventListener('offline',()=>toast('Sin conexión a internet'));
   window.addEventListener('online',()=>toast('Conexión restaurada ✓'));
 
+  // Track visit count for nudge logic
+  const visits=parseInt(localStorage.getItem('appsado_visits')||'0')+1;
+  localStorage.setItem('appsado_visits',String(visits));
+
   await initAuth();
   renderHist();
   initTimerUI();
   updateTrucoDisplay();
+
+  // Show monthly summary to logged-in users on 2nd+ visit of a new month
+  if(visits>1)checkMonthlySummary().catch(()=>{});
+
   const p=new URLSearchParams(window.location.search);
   const c=p.get('code');
   if(c)await viewAsado(c.toUpperCase());
