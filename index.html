@@ -977,14 +977,27 @@ input:focus,select:focus{border-color:var(--ember);background:#fff;}
 const SB='https://acnrkjbnbclhqleobfpg.supabase.co';
 const SK='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFjbnJramJuYmNsaHFsZW9iZnBnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwOTY2NDUsImV4cCI6MjA5MTY3MjY0NX0.hbTNIBF-egHxvEfvKWs0aLMU77NVSSQ4C4gyQhlbcC4';
 async function sbReq(path,opts={}){
-  const headers={
+  const buildHeaders=()=>({
     'apikey':SK,
     'Authorization':'Bearer '+SK,
     'Content-Type':'application/json',
     ...(opts.headers||{})
-  };
+  });
+  let headers=buildHeaders();
   if(opts.prefer)headers['Prefer']=opts.prefer;
-  const r=await fetch(SB+'/rest/v1/'+path,{...opts,headers});
+  let r=await fetch(SB+'/rest/v1/'+path,{...opts,headers});
+  // Auto-refresh on 401 (JWT expired) and retry once
+  if(r.status===401){
+    const refresh=localStorage.getItem('sb_refresh_token');
+    if(refresh){
+      await refreshSession(refresh);
+      // Rebuild headers with the freshly stored token
+      const newToken=localStorage.getItem('sb_access_token');
+      headers={...buildHeaders(),'Authorization':'Bearer '+(newToken||SK)};
+      if(opts.prefer)headers['Prefer']=opts.prefer;
+      r=await fetch(SB+'/rest/v1/'+path,{...opts,headers});
+    }
+  }
   if(!r.ok){const e=await r.text();throw new Error('Supabase error: '+r.status+' '+e);}
   const t=await r.text();return t?JSON.parse(t):null;
 }
@@ -1011,12 +1024,21 @@ async function updateAsado(a){
     body:JSON.stringify({data:a})
   });
 }
+// Auth-aware fetch: retries once after token refresh on 401
+async function authFetch(url,opts={}){
+  const token=()=>localStorage.getItem('sb_access_token');
+  const makeHeaders=()=>({'apikey':SK,'Authorization':'Bearer '+token(),...(opts.headers||{})});
+  let r=await fetch(url,{...opts,headers:makeHeaders()});
+  if(r.status===401){
+    const refresh=localStorage.getItem('sb_refresh_token');
+    if(refresh){await refreshSession(refresh);r=await fetch(url,{...opts,headers:makeHeaders()});}
+  }
+  return r;
+}
+
 async function getUserAsados(){
   if(!currentUser)return[];
-  const token=localStorage.getItem('sb_access_token');
-  const r=await fetch(SB+'/rest/v1/asados?user_id=eq.'+currentUser.id+'&order=created_at.desc&limit=20',{
-    headers:{'apikey':SK,'Authorization':'Bearer '+token}
-  });
+  const r=await authFetch(SB+'/rest/v1/asados?user_id=eq.'+currentUser.id+'&order=created_at.desc&limit=20');
   if(!r.ok)return[];
   const rows=await r.json();
   return rows.map(row=>row.data).filter(Boolean);
@@ -1408,10 +1430,7 @@ async function viewAsado(code){
     // Fetch organizer's MP link from their profile
     if(a.creatorId){
       try{
-        const token=localStorage.getItem('sb_access_token');
-        const r=await fetch(SB+'/rest/v1/profiles?id=eq.'+a.creatorId+'&select=mp_link,bank_acc&limit=1',{
-          headers:{'apikey':SK,...(token?{'Authorization':'Bearer '+token}:{})}
-        });
+        const r=await authFetch(SB+'/rest/v1/profiles?id=eq.'+a.creatorId+'&select=mp_link,bank_acc&limit=1');
         if(r.ok){
           const rows=await r.json();
           if(rows&&rows.length){
@@ -2467,10 +2486,7 @@ let cachedProfile = null;
 async function fetchProfile(){
   if(!currentUser) return {};
   try{
-    const token = localStorage.getItem('sb_access_token');
-    const r = await fetch(SB+'/rest/v1/profiles?id=eq.'+currentUser.id+'&limit=1',{
-      headers:{'apikey':SK,'Authorization':'Bearer '+token}
-    });
+    const r = await authFetch(SB+'/rest/v1/profiles?id=eq.'+currentUser.id+'&limit=1');
     if(!r.ok) return {};
     const rows = await r.json();
     if(rows && rows.length){
@@ -2483,15 +2499,9 @@ async function fetchProfile(){
 
 async function upsertProfile(data){
   if(!currentUser) return;
-  const token = localStorage.getItem('sb_access_token');
-  await fetch(SB+'/rest/v1/profiles',{
+  await authFetch(SB+'/rest/v1/profiles',{
     method:'POST',
-    headers:{
-      'apikey':SK,
-      'Authorization':'Bearer '+token,
-      'Content-Type':'application/json',
-      'Prefer':'resolution=merge-duplicates'
-    },
+    headers:{'Content-Type':'application/json','Prefer':'resolution=merge-duplicates'},
     body: JSON.stringify({id: currentUser.id, ...data, updated_at: new Date().toISOString()})
   });
 }
@@ -2837,10 +2847,7 @@ async function fetchContacts(){
   if(!currentUser)return[];
   if(cachedContacts)return cachedContacts;
   try{
-    const token=localStorage.getItem('sb_access_token');
-    const r=await fetch(SB+'/rest/v1/contacts?user_id=eq.'+currentUser.id+'&order=name.asc',{
-      headers:{'apikey':SK,'Authorization':'Bearer '+token}
-    });
+    const r=await authFetch(SB+'/rest/v1/contacts?user_id=eq.'+currentUser.id+'&order=name.asc');
     if(!r.ok)return[];
     cachedContacts=await r.json();
     return cachedContacts||[];
@@ -2850,10 +2857,9 @@ async function fetchContacts(){
 async function saveContact(name,data={}){
   if(!currentUser||!name)return;
   try{
-    const token=localStorage.getItem('sb_access_token');
-    await fetch(SB+'/rest/v1/contacts',{
+    await authFetch(SB+'/rest/v1/contacts',{
       method:'POST',
-      headers:{'apikey':SK,'Authorization':'Bearer '+token,'Content-Type':'application/json','Prefer':'resolution=merge-duplicates'},
+      headers:{'Content-Type':'application/json','Prefer':'resolution=merge-duplicates'},
       body:JSON.stringify({user_id:currentUser.id,name,...data})
     });
     cachedContacts=null; // invalidate cache
