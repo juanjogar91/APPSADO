@@ -347,6 +347,33 @@ input:focus,select:focus{border-color:var(--ember);background:#fff;}
 /* WHATSAPP BUTTON */
 .wa-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:11px;background:#25D366;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:500;font-family:var(--fb);text-decoration:none;cursor:pointer;transition:background .15s;margin-top:8px;}
 .wa-btn:hover{background:#1EB858;}
+/* FAB */
+.fab{position:fixed;bottom:24px;right:20px;width:56px;height:56px;border-radius:50%;background:var(--ember);color:#fff;border:none;font-size:28px;cursor:pointer;box-shadow:0 6px 20px rgba(196,98,45,.45);z-index:90;display:none;align-items:center;justify-content:center;transition:transform .15s,background .15s;line-height:1;}
+.fab:hover{background:var(--ember2);transform:scale(1.1);}
+.fab.show{display:flex;}
+/* MODAL BOTTOM SHEET */
+.modal-ov{position:fixed;inset:0;background:rgba(0,0,0,.52);z-index:500;display:flex;align-items:flex-end;justify-content:center;animation:fadeIn .2s;}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modal-sheet{background:var(--card);border-radius:20px 20px 0 0;width:100%;max-width:600px;max-height:80vh;overflow-y:auto;padding:8px 16px 40px;animation:slideUp .28s cubic-bezier(.4,0,.2,1);}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal-handle{width:40px;height:4px;background:var(--bd2);border-radius:2px;margin:8px auto 16px;cursor:pointer;}
+/* CONFETTI */
+@keyframes confettiFall{0%{transform:translateY(0) rotate(0deg) scale(1);opacity:1}100%{transform:translateY(300px) rotate(720deg) scale(.5);opacity:0}}
+.confetti-p{position:fixed;pointer-events:none;z-index:450;animation:confettiFall 1.4s ease-in forwards;font-size:22px;}
+/* SYNC BADGE */
+.sync-badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;color:var(--smoke2);background:rgba(255,255,255,.08);border-radius:20px;padding:2px 9px;margin-top:6px;cursor:pointer;border:1px solid rgba(255,255,255,.1);transition:background .15s;}
+.sync-badge:hover{background:rgba(255,255,255,.14);}
+.sync-dot{width:6px;height:6px;border-radius:50%;background:var(--green3);flex-shrink:0;}
+.sync-dot.syncing{background:var(--ember2);animation:blink .7s infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+/* QUICK MODE TOGGLE */
+.quick-toggle{display:flex;align-items:center;gap:10px;border:1.5px solid var(--ember-pale);border-radius:var(--rs);padding:12px 14px;cursor:pointer;margin-bottom:14px;user-select:none;background:var(--ember-xpale);transition:all .15s;}
+.qt-check{width:20px;height:20px;border-radius:5px;border:2px solid var(--ember);background:var(--ember);color:#fff;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;}
+.quick-toggle.off{background:var(--card);border-color:var(--bd2);}
+.quick-toggle.off .qt-check{background:var(--cream);border-color:var(--bd2);color:transparent;}
+/* FILTER PILLS */
+.fpill{font-size:12px;padding:5px 13px;border-radius:20px;border:1.5px solid var(--bd2);cursor:pointer;color:var(--smoke);background:var(--cream);font-family:var(--fb);transition:all .15s;user-select:none;}
+.fpill.on{background:var(--brown);color:var(--cream);border-color:var(--brown);}
 
 @media(max-width:480px){
   .tools-grid{grid-template-columns:repeat(3,1fr);}
@@ -369,7 +396,7 @@ input:focus,select:focus{border-color:var(--ember);background:#fff;}
     <div class="tb-name">APP<span>SADO</span></div>
   </div>
   <div class="tb-acts" id="tbActs">
-    <button class="tbb" onclick="go('join')">Código</button>
+    <button class="tbb" onclick="go('join')">Entrar 🥩</button>
     <button class="tbb" onclick="go('auth')">Ingresar</button>
     <button class="tbb p" onclick="startWizard()">+ Asado</button>
   </div>
@@ -424,40 +451,8 @@ input:focus,select:focus{border-color:var(--ember);background:#fff;}
     </div>
   </div>
 
-  <!-- CÓMO FUNCIONA -->
-  <div class="how-block">
-    <h2 class="how-title">Cómo funciona</h2>
-    <div class="how-steps">
-      <div class="how-step">
-        <div class="how-num">1</div>
-        <div class="how-text">
-          <div class="how-step-title">Creás el asado</div>
-          <div class="how-step-sub">Nombre, lugar, fecha y tus datos de cobro</div>
-        </div>
-      </div>
-      <div class="how-step">
-        <div class="how-num">2</div>
-        <div class="how-text">
-          <div class="how-step-title">Sumás a tus amigos</div>
-          <div class="how-step-sub">Compartís el código y cada uno entra desde su celu</div>
-        </div>
-      </div>
-      <div class="how-step">
-        <div class="how-num">3</div>
-        <div class="how-text">
-          <div class="how-step-title">Cargás los gastos</div>
-          <div class="how-step-sub">Cualquiera puede agregar lo que compró</div>
-        </div>
-      </div>
-      <div class="how-step">
-        <div class="how-num">4</div>
-        <div class="how-text">
-          <div class="how-step-title">La app calcula todo</div>
-          <div class="how-step-sub">Quién le debe a quién, con la menor cantidad de transferencias posibles</div>
-        </div>
-      </div>
-    </div>
-    <p class="how-close">Listo. Sin discusiones.</p>
+  <div style="background:var(--brown);padding:10px 20px 22px;text-align:center;">
+    <p style="font-family:var(--ff);font-size:17px;font-weight:700;color:var(--cream);opacity:.85;">Listo. Sin discusiones. 🔥</p>
   </div>
 
   <!-- HISTORIAL -->
@@ -466,33 +461,9 @@ input:focus,select:focus{border-color:var(--ember);background:#fff;}
     <div id="histList"></div>
   </div>
 
-  <!-- FAQ -->
-  <div class="faq-block">
-    <p class="faq-title">Preguntas frecuentes</p>
-    <div class="faq-item" onclick="toggleFaq(this)">
-      <div class="faq-q">¿Necesito registrarme para usar la app?</div>
-      <div class="faq-a">No. Podés crear asados y usar todas las herramientas sin cuenta. Si te registrás, tu historial de asados se guarda en la nube y podés verlo desde cualquier dispositivo.</div>
-    </div>
-    <div class="faq-item" onclick="toggleFaq(this)">
-      <div class="faq-q">¿Cómo entran mis amigos al asado?</div>
-      <div class="faq-a">Al crear el asado se genera un código único de 6 letras. Lo compartís por WhatsApp y cada uno entra con ese código desde su celu, sin necesidad de registrarse.</div>
-    </div>
-    <div class="faq-item" onclick="toggleFaq(this)">
-      <div class="faq-q">¿Qué pasa si alguien no toma alcohol?</div>
-      <div class="faq-a">Al cargar un gasto podés elegir quiénes participan en ese gasto específico. Si alguien no tomó vino, simplemente lo desmarcás y el costo no se le cobra.</div>
-    </div>
-    <div class="faq-item" onclick="toggleFaq(this)">
-      <div class="faq-q">¿Cómo funciona el cálculo de transferencias?</div>
-      <div class="faq-a">La app calcula el balance de cada persona y genera la menor cantidad de transferencias posibles para saldar todas las deudas. Si tres personas se deben plata entre sí, puede quedar en 1 o 2 movimientos en vez de 3.</div>
-    </div>
-    <div class="faq-item" onclick="toggleFaq(this)">
-      <div class="faq-q">¿La app es gratis?</div>
-      <div class="faq-a">Sí, APPSADO es completamente gratuita.</div>
-    </div>
-    <div class="footer-mini">
-      <div>© 2026 APPSADO · <a onclick="showPrivacy()">Política de privacidad</a></div>
-      <div style="margin-top:4px;">Hecho con 🔥 para los asados del Río de la Plata</div>
-    </div>
+  <div class="footer-mini">
+    <div>© 2026 APPSADO · <a onclick="showPrivacy()">Privacidad</a> · <a onclick="showFAQModal()" style="color:var(--ember);cursor:pointer;">Preguntas frecuentes</a></div>
+    <div style="margin-top:4px;">Hecho con 🔥 para los asados del Río de la Plata</div>
   </div>
 </div>
 
@@ -556,6 +527,13 @@ input:focus,select:focus{border-color:var(--ember);background:#fff;}
     </div>
     <div class="ws" id="ws3">
       <h2 class="wt">Los gastos</h2><p class="wsub">¿Qué se compró, cuánto y quién pagó?</p>
+      <div class="quick-toggle" id="quickModeToggle" onclick="toggleQuickMode()">
+        <div class="qt-check">✓</div>
+        <div>
+          <div style="font-size:14px;font-weight:500;color:var(--brown);">Todos participan en todo</div>
+          <div style="font-size:12px;color:var(--smoke);">Desactivá si alguien no tomó o no comió algo</div>
+        </div>
+      </div>
       <div class="fc" style="padding:12px;">
         <div id="expList"></div>
         <button class="badd" onclick="addExp()">+ Agregar gasto</button>
@@ -618,7 +596,10 @@ input:focus,select:focus{border-color:var(--ember);background:#fff;}
       <div class="avh-name" id="av-name"></div>
       <div class="avh-place" id="av-place"></div>
       <div class="avh-code" id="av-code-chip" onclick="copyCodeChip()"><b id="av-code"></b><small>tocar para copiar</small></div>
-      <button onclick="editAsadoInfo()" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.16);border-radius:8px;padding:4px 10px;font-size:12px;color:var(--smoke2);cursor:pointer;font-family:var(--fb);margin-top:6px;">✏️ Editar nombre/lugar</button>
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:6px;">
+        <button onclick="editAsadoInfo()" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.16);border-radius:8px;padding:4px 10px;font-size:12px;color:var(--smoke2);cursor:pointer;font-family:var(--fb);">✏️ Editar</button>
+        <div class="sync-badge" id="syncBadge" onclick="manualRefresh()"><div class="sync-dot" id="syncDot"></div><span id="syncLabel">En vivo</span></div>
+      </div>
     </div>
     <div class="av-stats">
       <div class="avs"><div class="avs-v" id="av-total"></div><div class="avs-l">total</div></div>
@@ -820,6 +801,7 @@ input:focus,select:focus{border-color:var(--ember);background:#fff;}
     <div id="winner-banner" style="display:none;" class="winner-banner">
       <h3 id="winner-text">🏆 Ganó Equipo 1</h3>
       <p>¡Qué partidazo!</p>
+      <button id="truco-save-btn" onclick="saveTrucoToAsado()" style="display:none;margin-top:12px;background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.4);border-radius:8px;padding:8px 16px;color:#fff;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--fb);">Guardar resultado en el asado</button>
     </div>
     <div class="truco-teams">
       <div class="team-card">
@@ -847,6 +829,7 @@ input:focus,select:focus{border-color:var(--ember);background:#fff;}
 </div>
 
 <div class="toast" id="toast"></div>
+<button class="fab" id="fabAdd" title="Agregar gasto" onclick="showTab('addexp')">+</button>
 
 <script>
 // ── SUPABASE ──
@@ -971,7 +954,7 @@ function updateAuthUI(){
   if(currentUser){
     const initials=ini(currentUser.name);
     acts.innerHTML=`
-      <button class="tbb" onclick="go('join')">Código</button>
+      <button class="tbb" onclick="go('join')">Entrar 🥩</button>
       <div class="user-chip" onclick="toggleMenu()">
         <div class="user-chip-av">${initials}</div>
         <div class="user-chip-name">${currentUser.name}</div>
@@ -981,7 +964,7 @@ function updateAuthUI(){
     document.getElementById('menuUserEmail').textContent=currentUser.email;
   } else {
     acts.innerHTML=`
-      <button class="tbb" onclick="go('join')">Código</button>
+      <button class="tbb" onclick="go('join')">Entrar 🥩</button>
       <button class="tbb" onclick="go('auth')">Ingresar</button>
       <button class="tbb p" onclick="startWizard()">+ Asado</button>`;
   }
@@ -1065,6 +1048,9 @@ function hideL(){document.getElementById('lov').classList.add('hide');}
 function go(name){
   document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on'));
   document.getElementById('scr-'+name).classList.add('on');
+  const fab=document.getElementById('fabAdd');
+  if(fab)fab.classList.toggle('show',name==='asado');
+  if(name!=='asado'){stopPolling();transFilter='all';}
   if(name==='home')renderHist();
   if(name==='auth')document.getElementById('authSent').style.display='none';
   if(name==='profile')loadProfileScreen();
@@ -1130,6 +1116,9 @@ function startWizard(){
   document.getElementById('expList').innerHTML='';
   const myName=currentUser?(prof.displayName||currentUser.name||''):'';
   document.getElementById('friendsList').innerHTML=`<div class="ir"><input type="text" placeholder="Tu nombre" value="${myName}"><button class="bic d" onclick="rmF(this)">×</button></div>`;
+  wizardQuickMode=true;
+  const qmt=document.getElementById('quickModeToggle');
+  if(qmt){qmt.classList.remove('off');const chk=qmt.querySelector('.qt-check');if(chk)chk.textContent='✓';}
   document.getElementById('evtName').value='';
   document.getElementById('evtPlace').value='';
   document.getElementById('evtDate').value=new Date().toISOString().slice(0,10);
@@ -1150,7 +1139,7 @@ function wizGo(n){
     refreshPayerSelects();
     if(!document.querySelectorAll('#expList .er').length) addExp();
   }
-  if(n>=4){const ex=getExps();if(!ex.length){toast('Cargá al menos un gasto.');return;}buildSplitCfg(fr,ex);}
+  if(n>=4){const ex=getExps();if(!ex.length){toast('Cargá al menos un gasto.');return;}if(wizardQuickMode){finishAsado();return;}buildSplitCfg(fr,ex);}
   document.querySelectorAll('.ws').forEach(s=>s.classList.remove('on'));
   document.getElementById('ws'+n).classList.add('on');
   document.getElementById('wizProg').style.width=(n*25)+'%';
@@ -1246,6 +1235,7 @@ async function viewAsado(code){
     if(!a){toast('Asado no encontrado. Verificá el código.');return;}
     CA=a;
     addHist(a.code,a.name,a.total,a.date);
+    startPolling();
     // Fetch organizer's MP link from their profile
     if(a.creatorId){
       try{
@@ -1364,10 +1354,15 @@ function showTab(n){
 }
 function renderTransTab(a){
   const c=document.getElementById('tc-transfers');
-  const pending=(a.transfers||[]).filter(t=>!t.paid);
-  const done=(a.transfers||[]).filter(t=>t.paid);
-  const isOrganizer=!CA.creatorId||(currentUser&&CA.creatorId===currentUser.id);
   const myIdx=getMyParticipantIdx();
+  const isOrganizer=!CA.creatorId||(currentUser&&CA.creatorId===currentUser.id);
+  // Apply personal filter
+  const allTrans=a.transfers||[];
+  const visibleTrans=(transFilter==='me'&&myIdx>=0)?allTrans.filter(t=>t.from===myIdx||t.to===myIdx):allTrans;
+  const pending=visibleTrans.filter(t=>!t.paid);
+  const done=visibleTrans.filter(t=>t.paid);
+  // Filter pills (only show if user is identified)
+  const filterUI=myIdx>=0?`<div style="display:flex;gap:8px;margin-bottom:14px;"><span class="fpill${transFilter==='all'?' on':''}" data-f="all" onclick="setTransFilter('all')">Todos</span><span class="fpill${transFilter==='me'?' on':''}" data-f="me" onclick="setTransFilter('me')">Solo yo</span></div>`:'';
 
   // Get MP link for a given participant index
   function getMPLink(friendIdx){
@@ -1376,19 +1371,23 @@ function renderTransTab(a){
     return '';
   }
 
-  if(!a.transfers||!a.transfers.length){
-    c.innerHTML=`<div class="empty" style="padding:28px 0;"><div class="ei">✅</div><p>¡Todo saldado!<br>Sin deudas pendientes.</p></div>
+  if(!allTrans.length){
+    c.innerHTML=filterUI+`<div class="empty" style="padding:28px 0;"><div class="ei">✅</div><p>¡Todo saldado!<br>Sin deudas pendientes.</p></div>
     <button class="share-big-btn" onclick="showTab('share')" style="margin-top:8px;">📲 Compartir resumen igual</button>`;
     return;
   }
 
   const allPaid=(a.transfers||[]).every(t=>t.paid);
   if(allPaid){
-    c.innerHTML=`<div style="text-align:center;padding:28px 16px;">
-      <div style="font-size:48px;margin-bottom:12px;">🎉</div>
-      <div style="font-family:var(--ff);font-size:22px;font-weight:700;color:var(--brown);margin-bottom:8px;">¡Todo saldado!</div>
+    setTimeout(showConfetti,200);
+    const waMsg='🔥 ¡Asado saldado!\n\n*'+a.name+'* — Todo el mundo pagó. ¡Gracias!\n\nOrganizamos con APPSADO 🥩 appsado.vercel.app';
+    const waUrl='https://wa.me/?text='+encodeURIComponent(waMsg);
+    c.innerHTML=filterUI+`<div style="text-align:center;padding:28px 16px;">
+      <div style="font-size:56px;margin-bottom:12px;">🎉</div>
+      <div style="font-family:var(--ff);font-size:24px;font-weight:900;color:var(--brown);margin-bottom:6px;">¡Todo saldado!</div>
       <div style="font-size:14px;color:var(--smoke);margin-bottom:24px;">Todas las transferencias fueron confirmadas.</div>
-      <button class="share-big-btn" onclick="showTab('share')">📲 Compartir resumen</button>
+      <a href="${waUrl}" target="_blank" class="wa-btn" style="margin-bottom:10px;margin-top:0;">💬 Compartir celebración</a>
+      <button class="share-big-btn" onclick="showTab('share')" style="background:var(--brown);">📄 Ver resumen completo</button>
     </div>
     <p class="slabel" style="margin-top:8px;">Historial</p>`+
     a.transfers.map(t=>{
@@ -1408,6 +1407,7 @@ function renderTransTab(a){
     html+=`<p class="slabel" style="margin-bottom:10px;">Pendientes</p>`;
     html+=a.transfers.map((t,ti)=>{
       if(t.paid)return'';
+      if(transFilter==='me'&&myIdx>=0&&t.from!==myIdx&&t.to!==myIdx)return'';
       const fn=a.friends[t.from],tn=a.friends[t.to];
       const notified=!!t.notified;
       const toMPLink=getMPLink(t.to);
@@ -1458,6 +1458,7 @@ function renderTransTab(a){
     html+=`<p class="slabel" style="margin-top:18px;margin-bottom:10px;">Confirmados</p>`;
     html+=a.transfers.map(t=>{
       if(!t.paid)return'';
+      if(transFilter==='me'&&myIdx>=0&&t.from!==myIdx&&t.to!==myIdx)return'';
       const fn=a.friends[t.from],tn=a.friends[t.to];
       return`<div class="tr-row paid">
         <div class="tr-sentence"><span class="tr-name">${fn}</span><span class="tr-arrow">→</span><span class="tr-name2">${tn}</span></div>
@@ -1466,7 +1467,7 @@ function renderTransTab(a){
     }).join('');
   }
 
-  c.innerHTML=html;
+  c.innerHTML=filterUI+html;
 }
 
 async function notifyPaid(ti){
@@ -1574,7 +1575,8 @@ function renderPeopleTab(a){
           <div style="font-size:11px;color:var(--smoke);text-align:right;">${lbl}</div>
         </div>
       </div>`;
-    }).join('')+'</div>';
+    }).join('')+'</div>'+
+    '<button onclick="addParticipant()" style="width:100%;padding:11px;margin-top:10px;border:1.5px dashed var(--bd2);border-radius:var(--rs);background:none;color:var(--smoke);font-size:14px;cursor:pointer;font-family:var(--fb);transition:all .2s;" onmouseover="this.style.borderColor=\'var(--ember)\';this.style.color=\'var(--ember)\'" onmouseout="this.style.borderColor=\'var(--bd2)\';this.style.color=\'var(--smoke)\'">+ Agregar participante</button>';
 }
 
 // ── CARGA COLABORATIVA ──
@@ -2011,6 +2013,11 @@ function calcAsado(){
   if(mollejas_kg) rows+=`<div class="result-item"><div class="result-name">🫀 Mollejas</div><div><div class="result-val">${mollejas_kg.toFixed(1)} kg</div><div class="result-unit">${achuras.mollejas} porción${achuras.mollejas>1?'es':''} de 500g</div></div></div>`;
   if(chinchu_kg) rows+=`<div class="result-item"><div class="result-name">🌀 Chinchulines</div><div><div class="result-val">${chinchu_kg.toFixed(1)} kg</div><div class="result-unit">${achuras.chinchu} porción${achuras.chinchu>1?'es':''} de 500g</div></div></div>`;
   if(pan) rows+=`<div class="result-item"><div class="result-name">🍞 Pan (flautas)</div><div><div class="result-val">${pan} un.</div></div></div>`;
+  const waList='https://wa.me/?text='+encodeURIComponent(buildShoppingList());
+  rows+=`<div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--bd);display:flex;gap:8px;">
+    <button onclick="navigator.clipboard.writeText(buildShoppingList()).then(()=>toast('Lista copiada ✓'))" style="flex:1;padding:10px;border:1.5px solid var(--bd2);border-radius:var(--rs);background:none;font-size:13px;cursor:pointer;font-family:var(--fb);color:var(--brown);">📋 Copiar lista</button>
+    <a href="${waList}" target="_blank" class="wa-btn" style="flex:1;margin:0;border-radius:var(--rs);padding:10px;font-size:13px;">💬 WhatsApp</a>
+  </div>`;
   document.getElementById('asadResult').innerHTML=rows;
 }
 
@@ -2269,6 +2276,8 @@ function updateTrucoDisplay(){
       const wb=document.getElementById('winner-banner');
       document.getElementById('winner-text').textContent='🏆 ¡Ganó '+(t===1?t1:t2)+'!';
       wb.style.display='block';
+      const saveBtn=document.getElementById('truco-save-btn');
+      if(saveBtn){saveBtn.style.display=CA?'block':'none';if(CA)saveBtn.textContent='Guardar resultado en '+CA.name;}
     }
   });
 }
@@ -2438,6 +2447,155 @@ function trackEvent(name,data={}){
     events.push({name,data,ts:Date.now()});
     localStorage.setItem('appsado_events',JSON.stringify(events.slice(-100)));
   }catch(e){}
+}
+
+// ── POLLING ──
+let pollInterval=null;
+function startPolling(){
+  stopPolling();
+  pollInterval=setInterval(async()=>{
+    if(!CA)return;
+    const dot=document.getElementById('syncDot');
+    const lbl=document.getElementById('syncLabel');
+    if(dot)dot.classList.add('syncing');
+    if(lbl)lbl.textContent='Verificando...';
+    try{
+      const fresh=await getAsado(CA.code);
+      if(fresh&&fresh.updatedAt&&fresh.updatedAt!==CA.updatedAt){
+        const addexpOpen=document.getElementById('tc-addexp')?.classList.contains('on');
+        if(!addexpOpen){CA=fresh;renderAV(CA);toast('Asado actualizado 🔄');}
+      }
+    }catch(e){}
+    finally{
+      if(dot)dot.classList.remove('syncing');
+      const l=document.getElementById('syncLabel');
+      if(l&&l.textContent==='Verificando...')l.textContent='En vivo';
+    }
+  },30000);
+}
+function stopPolling(){if(pollInterval){clearInterval(pollInterval);pollInterval=null;}}
+async function manualRefresh(){
+  if(!CA)return;
+  const dot=document.getElementById('syncDot');
+  const lbl=document.getElementById('syncLabel');
+  if(dot)dot.classList.add('syncing');
+  if(lbl)lbl.textContent='Actualizando...';
+  try{
+    const fresh=await getAsado(CA.code);
+    if(fresh){CA=fresh;renderAV(CA);toast('Actualizado ✓');}
+  }catch(e){toast('Error al actualizar.');}
+  finally{
+    if(dot)dot.classList.remove('syncing');
+    const l=document.getElementById('syncLabel');
+    if(l)l.textContent='En vivo';
+  }
+}
+
+// ── CONFETTI ──
+function showConfetti(){
+  const emojis=['🔥','🥩','🎉','✨','🍺','🎊','💸','🪵'];
+  for(let i=0;i<22;i++){
+    setTimeout(()=>{
+      const el=document.createElement('div');
+      el.className='confetti-p';
+      el.textContent=emojis[Math.floor(Math.random()*emojis.length)];
+      el.style.left=Math.random()*90+'vw';
+      el.style.top='-10px';
+      el.style.animationDelay=(Math.random()*.4)+'s';
+      document.body.appendChild(el);
+      setTimeout(()=>el.remove(),2000);
+    },i*70);
+  }
+}
+
+// ── FAQ MODAL ──
+const FAQ_DATA=[
+  {q:'¿Necesito registrarme para usar la app?',a:'No. Podés crear asados y usar todas las herramientas sin cuenta. Si te registrás, tu historial se guarda en la nube y lo ves desde cualquier dispositivo.'},
+  {q:'¿Cómo entran mis amigos al asado?',a:'Al crear el asado se genera un código único de 6 caracteres. Lo compartís por WhatsApp y cada uno entra con ese código desde su celu, sin necesidad de registrarse.'},
+  {q:'¿Qué pasa si alguien no toma alcohol?',a:'Al cargar un gasto podés elegir quiénes participan en él. Si alguien no tomó vino, lo desmarcás y el costo no se le cobra.'},
+  {q:'¿Cómo funciona el cálculo de transferencias?',a:'La app calcula el balance de cada persona y genera la menor cantidad de transferencias posibles para saldar todas las deudas. Tres personas que se deben plata entre sí puede quedar en 1 o 2 movimientos en vez de 3.'},
+  {q:'¿Puedo agregar participantes después de crear el asado?',a:'Sí. En la pestaña "Personas" del asado hay un botón para agregar participantes. Los nuevos pueden ser incluidos en cualquier gasto futuro.'},
+  {q:'¿La app es gratis?',a:'Sí, APPSADO es completamente gratuita.'}
+];
+function showFAQModal(){
+  const items=FAQ_DATA.map(f=>`<div class="faq-item" onclick="toggleFaq(this)"><div class="faq-q">${f.q}</div><div class="faq-a">${f.a}</div></div>`).join('');
+  const ov=document.createElement('div');
+  ov.className='modal-ov';
+  ov.innerHTML=`<div class="modal-sheet"><div class="modal-handle" onclick="this.closest('.modal-ov').remove()"></div><h3 style="font-family:var(--ff);font-size:20px;font-weight:700;color:var(--brown);margin-bottom:16px;">Preguntas frecuentes</h3>${items}</div>`;
+  ov.addEventListener('click',e=>{if(e.target===ov)ov.remove();});
+  document.body.appendChild(ov);
+}
+
+// ── ADD PARTICIPANT ──
+async function addParticipant(){
+  if(!CA)return;
+  const name=prompt('Nombre del nuevo participante:');
+  if(!name||!name.trim())return;
+  const trimmed=name.trim();
+  if(CA.friends.map(f=>f.toLowerCase()).includes(trimmed.toLowerCase())){toast('Ya existe ese nombre.');return;}
+  CA.friends.push(trimmed);
+  try{
+    showL('Guardando...');
+    await updateAsado(CA);
+    renderAV(CA);showTab('people');
+    toast(`${trimmed} agregado/a ✓`);
+  }catch(e){toast('Error al guardar.');CA.friends.pop();}
+  finally{hideL();}
+}
+
+// ── QUICK MODE ──
+let wizardQuickMode=true;
+function toggleQuickMode(){
+  wizardQuickMode=!wizardQuickMode;
+  const t=document.getElementById('quickModeToggle');
+  if(t)t.classList.toggle('off',!wizardQuickMode);
+  const chk=t?.querySelector('.qt-check');
+  if(chk)chk.textContent=wizardQuickMode?'✓':'';
+}
+
+// ── TRANS FILTER ──
+let transFilter='all';
+function setTransFilter(f){
+  transFilter=f;
+  document.querySelectorAll('.fpill').forEach(p=>p.classList.toggle('on',p.dataset.f===f));
+  renderTransTab(CA);
+  document.getElementById('tc-transfers').classList.add('on');
+}
+
+// ── TRUCO → ASADO ──
+function saveTrucoToAsado(){
+  if(!CA)return;
+  const t1=document.getElementById('t1name')?.value||'Nosotros';
+  const t2=document.getElementById('t2name')?.value||'Ellos';
+  const p1=trucoPts[0],p2=trucoPts[1];
+  const winner=p1>p2?t1:t2;
+  const note={desc:`🃏 Truco: ${t1} ${p1} — ${t2} ${p2} (ganó ${winner})`,amt:0,payerIdx:0,parts:[],cat:'otros',addedBy:'Truco',addedAt:Date.now()};
+  if(!CA.exps)CA.exps=[];
+  CA.exps.push(note);
+  updateAsado(CA).then(()=>{toast('Resultado guardado en el asado ✓');}).catch(()=>{toast('Error al guardar.');CA.exps.pop();});
+}
+
+// ── SHOPPING LIST (ASADÓMETRO) ──
+function buildShoppingList(){
+  const total=counts.men+counts.women+counts.kids;
+  if(!total)return'';
+  let carne=(counts.men*400+counts.women*300+counts.kids*180)/1000;
+  if(extras.mucho)carne*=1.2;
+  const kg_achuras=(achuras.mollejas*.5)+(achuras.chinchu*.5)+(achuras.morcillas*.08)+(achuras.chorisP*.12)+(achuras.chorisR*.2);
+  carne=Math.max(carne-kg_achuras*.5,carne*.5);
+  carne=Math.ceil(carne*10)/10;
+  const carbon_bolsas=Math.ceil(carne*1.4/3);
+  let lines=`🛒 Lista de compras — ${total} personas\n\n`;
+  lines+=`🥩 Carne: ${carne.toFixed(1)} kg\n`;
+  lines+=`🪵 Carbón: ${carbon_bolsas} bolsa${carbon_bolsas>1?'s':''} (${carbon_bolsas*3} kg)\n`;
+  if(achuras.chorisP)lines+=`🌭 Chorizo parrillero: ${achuras.chorisP} un.\n`;
+  if(achuras.chorisR)lines+=`🌭 Chorizo rosca: ${(achuras.chorisR*.2).toFixed(1)} kg\n`;
+  if(achuras.morcillas)lines+=`🩸 Morcillas: ${achuras.morcillas} un.\n`;
+  if(achuras.mollejas)lines+=`🫀 Mollejas: ${(achuras.mollejas*.5).toFixed(1)} kg\n`;
+  if(achuras.chinchu)lines+=`🌀 Chinchulines: ${(achuras.chinchu*.5).toFixed(1)} kg\n`;
+  if(extras.pan)lines+=`🍞 Pan: ${Math.ceil(total/4)} flauta${Math.ceil(total/4)>1?'s':''}\n`;
+  lines+=`\nGenerado con APPSADO 🔥 appsado.vercel.app`;
+  return lines;
 }
 
 // ── INIT ──
